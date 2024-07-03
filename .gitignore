@@ -1,0 +1,38 @@
+# Общие исключения для операционных систем
+.DS_Store
+Thumbs.db
+
+# Логи и временные файлы
+/logs
+*.log
+/tmp
+
+# Сборки и зависимости
+/build
+/target
+/out
+*.war
+*.ear
+
+# Настройки IDE
+/.idea
+*.iml
+*.ipr
+*.iws
+/.vscode
+
+# Maven
+/.mvn
+mvnw
+mvnw.cmd
+.settings/
+target/
+dependency-reduced-pom.xml
+buildNumber.properties
+
+# IntelliJ
+.idea/
+out/
+
+# VS Code
+.vscode/
