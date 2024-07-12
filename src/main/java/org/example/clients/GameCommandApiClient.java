@@ -1,4 +1,4 @@
-package org.example.Play;
+package org.example.clients;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 

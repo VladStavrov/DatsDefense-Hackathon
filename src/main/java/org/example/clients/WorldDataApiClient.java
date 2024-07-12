@@ -1,4 +1,4 @@
-package org.example;
+package org.example.clients;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.exeptions.ApiErrorResponse;

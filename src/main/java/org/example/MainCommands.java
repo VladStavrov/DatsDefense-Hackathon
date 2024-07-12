@@ -1,8 +1,13 @@
 package org.example;
 
-import org.example.Play.GameCommandApiClient;
+import org.example.clients.GameCommandApiClient;
+import org.example.clients.ParticipationApiClient;
+import org.example.clients.RoundsApiClient;
+import org.example.clients.WorldDataApiClient;
+import org.example.clients.ZombiDefApiClient;
+import org.example.models.ParticipationResponse;
+import org.example.models.RoundsResponse;
 import org.example.models.mapInfo.InfoResponse;
-import org.example.models.mapInfo.ZombieDefResponse;
 import org.example.models.play.CommandResponse;
 import org.example.models.play.PlayRequest;
 import org.example.models.worldInfo.WorldDataResponse;
