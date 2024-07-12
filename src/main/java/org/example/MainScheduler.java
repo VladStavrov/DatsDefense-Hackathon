@@ -3,6 +3,7 @@ package org.example;
 import org.example.scripts.Script1;
 import org.example.scripts.Script2;
 
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,6 +16,9 @@ public class MainScheduler {
         MainScheduler manager = new MainScheduler();
         manager.addScript("Script1", new Script1());
         manager.addScript("Script2", new Script2());
+        MainCommands mainCommands = new MainCommands();
+        mainCommands.zombieDef();
+        mainCommands.fetchWorldData();
 
         manager.startAll();
     }
