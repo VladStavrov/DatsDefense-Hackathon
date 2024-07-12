@@ -9,7 +9,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class MoveBaseScript {
-    public static MoveBase moveBase(InfoResponse infoResponse, WorldDataResponse worldDataResponse){
+
+    public static MoveBase moveBase(InfoResponse infoResponse, WorldDataResponse worldDataResponse) {
         MoveBase moveBase = new MoveBase();
         //
         return moveBase;
