@@ -2,7 +2,8 @@ package org.example;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
-import lombok.Getter;
+import org.example.exeptions.ApiErrorResponse;
+import org.example.exeptions.ApiException;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -26,7 +27,7 @@ public class ZombiDefApiClient {
     }
 
     // TODO Обращаться к этому методу
-    public static ApiResponse getApiResponse() {
+    public static InfoResponse getApiResponse() {
         try {
             ZombiDefApiClient client = new ZombiDefApiClient();
             return client.fetchUnits();
@@ -36,7 +37,7 @@ public class ZombiDefApiClient {
         }
     }
 
-    public ApiResponse fetchUnits() throws IOException, InterruptedException, ApiException {
+    public InfoResponse fetchUnits() throws IOException, InterruptedException, ApiException {
         HttpRequest request = HttpRequest.newBuilder().uri(URI.create(BASE_URL)).header(AUTH_HEADER, API_KEY).header("Content-Type", "application/json").GET().build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -45,7 +46,7 @@ public class ZombiDefApiClient {
         String responseBody = response.body();
 
         if (statusCode == 200) {
-            return objectMapper.readValue(responseBody, ApiResponse.class);
+            return objectMapper.readValue(responseBody, InfoResponse.class);
         } else if (statusCode == 400 || statusCode == 401 || statusCode == 403 || statusCode == 404 || statusCode == 429) {
             ApiErrorResponse errorResponse = objectMapper.readValue(responseBody, ApiErrorResponse.class);
             throw new ApiException(statusCode, errorResponse);
@@ -55,7 +56,7 @@ public class ZombiDefApiClient {
     }
 
     public static void main(String[] args) {
-        ApiResponse response = getApiResponse();
+        InfoResponse response = getApiResponse();
         if (response != null) {
             System.out.println(response);
         } else {
@@ -65,7 +66,7 @@ public class ZombiDefApiClient {
 }
 
 @Data
-class ApiResponse {
+class InfoResponse {
     public Base[] base;
     public EnemyBlock[] enemyBlocks;
     public Player player;
@@ -73,12 +74,6 @@ class ApiResponse {
     public int turn;
     public long turnEndsInMs;
     public Zombie[] zombies;
-}
-
-@Data
-class ApiErrorResponse {
-    public int errCode;
-    public String error;
 }
 
 @Data
@@ -132,25 +127,22 @@ class LastAttack {
     public int x;
     public int y;
 }
-@Data
-class WorldDataResponse{
-    public String realName;
-    public List<ZPot> zPots;
-}
 
 @Data
-class ZPot {
+class
+Pot {
     public int x;
     public int y;
     public String type;
 }
 
 @Data
-class ZombieDefResponse{
+class ZombieDefResponse {
     public String gameName;
     public String now;
     public List<Round> rounds;
 }
+
 @Data
 class Round {
     public int duration;
@@ -159,17 +151,4 @@ class Round {
     public int repeat;
     public String startAt;
     public String status;
-}
-
-
-@Getter
-class ApiException extends Exception {
-    private final int statusCode;
-    private final ApiErrorResponse errorResponse;
-
-    public ApiException(int statusCode, ApiErrorResponse errorResponse) {
-        super("API returned status code " + statusCode + " with error: " + errorResponse.error);
-        this.statusCode = statusCode;
-        this.errorResponse = errorResponse;
-    }
 }

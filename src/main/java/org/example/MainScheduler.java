@@ -18,7 +18,6 @@ public class MainScheduler {
         manager.addScript("Script2", new Script2());
         MainCommands mainCommands = new MainCommands();
         mainCommands.zombieDef();
-        mainCommands.fetchWorldData();
 
         manager.startAll();
     }

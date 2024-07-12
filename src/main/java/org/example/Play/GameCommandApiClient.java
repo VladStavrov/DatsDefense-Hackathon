@@ -1,11 +1,10 @@
 package org.example.Play;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Getter;
 
 import org.example.exeptions.ApiErrorResponse;
 import org.example.exeptions.ApiException;
-import org.example.models.Command;
+import org.example.models.CommandResponse;
 import org.example.models.PlayRequest;
 
 import java.net.URI;
@@ -23,7 +22,7 @@ public class GameCommandApiClient {
         this.httpClient = HttpClient.newHttpClient();
         this.objectMapper = new ObjectMapper();
     }
-    public Command sendCommand(PlayRequest playRequest) throws Exception {
+    public CommandResponse sendCommand(PlayRequest playRequest) throws Exception {
         String jsonBody = objectMapper.writeValueAsString(playRequest);
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL))
@@ -39,7 +38,7 @@ public class GameCommandApiClient {
 
 
         if (statusCode == 200) {
-            return objectMapper.readValue(response.body(), Command.class);
+            return objectMapper.readValue(response.body(), CommandResponse.class);
         } else if (statusCode == 400 || statusCode == 401 || statusCode == 403 || statusCode == 404 || statusCode == 429) {
             ApiErrorResponse errorResponse = objectMapper.readValue(response.body(), ApiErrorResponse.class);
             throw new ApiException(statusCode, errorResponse);

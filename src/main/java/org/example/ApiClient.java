@@ -4,9 +4,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
 
 public class ApiClient {
     //TODO Вставить BASE_URL из документации
@@ -20,18 +17,8 @@ public class ApiClient {
         this.httpClient = HttpClient.newBuilder().build();
     }
 
-    private String buildUrlWithParams(String endpoint, Map<String, String> queryParams) throws Exception {
-        StringBuilder url = new StringBuilder(BASE_URL).append(endpoint);
-
-        if (queryParams != null && !queryParams.isEmpty()) {
-            url.append("?");
-            for (Map.Entry<String, String> param : queryParams.entrySet()) {
-                url.append(URLEncoder.encode(param.getKey(), StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode(param.getValue(), StandardCharsets.UTF_8)).append("&");
-            }
-            url.deleteCharAt(url.length() - 1);
-        }
-
-        return url.toString();
+    private String buildUrlWithParams(String endpoint) {
+        return BASE_URL + endpoint;
     }
 
     private HttpRequest.Builder createRequestBuilder(String url) {
@@ -47,32 +34,32 @@ public class ApiClient {
         }
     }
 
-    public String doGet(String endpoint, Map<String, String> queryParams) throws Exception {
-        String url = buildUrlWithParams(endpoint, queryParams);
+    public String doGet(String endpoint) throws Exception {
+        String url = buildUrlWithParams(endpoint);
         HttpRequest request = createRequestBuilder(url).GET().build();
         return sendRequest(request);
     }
 
-    public String doPost(String endpoint, Map<String, String> queryParams, String jsonBody) throws Exception {
-        String url = buildUrlWithParams(endpoint, queryParams);
+    public String doPost(String endpoint, String jsonBody) throws Exception {
+        String url = buildUrlWithParams(endpoint);
         HttpRequest request = createRequestBuilder(url).POST(HttpRequest.BodyPublishers.ofString(jsonBody)).build();
         return sendRequest(request);
     }
 
-    public String doPut(String endpoint, Map<String, String> queryParams, String jsonBody) throws Exception {
-        String url = buildUrlWithParams(endpoint, queryParams);
-        HttpRequest request = createRequestBuilder(url).PUT(HttpRequest.BodyPublishers.ofString(jsonBody)).build();
+    public String doPut(String endpoint) throws Exception {
+        String url = buildUrlWithParams(endpoint);
+        HttpRequest request = createRequestBuilder(url).PUT(HttpRequest.BodyPublishers.noBody()).build();
         return sendRequest(request);
     }
 
-    public String doPatch(String endpoint, Map<String, String> queryParams, String jsonBody) throws Exception {
-        String url = buildUrlWithParams(endpoint, queryParams);
+    public String doPatch(String endpoint, String jsonBody) throws Exception {
+        String url = buildUrlWithParams(endpoint);
         HttpRequest request = createRequestBuilder(url).method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody)).build();
         return sendRequest(request);
     }
 
-    public String doDelete(String endpoint, Map<String, String> queryParams) throws Exception {
-        String url = buildUrlWithParams(endpoint, queryParams);
+    public String doDelete(String endpoint) throws Exception {
+        String url = buildUrlWithParams(endpoint);
         HttpRequest request = createRequestBuilder(url).DELETE().build();
         return sendRequest(request);
     }

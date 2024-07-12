@@ -1,84 +1,77 @@
 package org.example;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.example.models.*;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
+import org.example.Play.GameCommandApiClient;
+import org.example.models.CommandResponse;
+import org.example.models.PlayRequest;
 
 public class MainCommands {
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    private final ApiClient apiClient = new ApiClient();
 
-    public void play(String url) throws Exception {
-
-        PlayRequest playRequest = new PlayRequest();
-        playRequest.setAttack(Collections.singletonList(new Attack() {{
-            setBlockId("f47ac10b-58cc-0372-8562-0e02b2c3d479");
-            setTarget(new Target() {{
-                setX(1);
-                setY(1);
-            }});
-        }}));
-        playRequest.setBuild(Collections.singletonList(new Build() {{
-            setX(1);
-            setY(1);
-        }}));
-        playRequest.setMoveBase(new MoveBase() {{
-            setX(1);
-            setY(1);
-        }});
-
-        String json = objectMapper.writeValueAsString(playRequest);
-        System.out.println("playRequest json: "+ playRequest);
-        apiClient.doPost("/play/zombidef/command",null,json);
+    //№1 - commands to build and attack, should be sent only once per turn
+    public static CommandResponse getApiResponse(PlayRequest playRequest) {
+        try {
+            GameCommandApiClient client = new GameCommandApiClient();
+            return client.sendCommand(playRequest);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
-
-
-        public void zombieDef(){
-            ApiClient apiClient = new ApiClient();
-            try{
-                String response = apiClient.doGet("/rounds/zombidef", new HashMap<>());
-                parseAndPrintResponse(response);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-
-        }
-
-        public void fetchWorldData() {
-            ApiClient apiClient = new ApiClient();
-            try {
-                String response = apiClient.doGet("/play/zombidef/world", new HashMap<>());
-                parseAndPrintWorldResponse(response);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-    private void parseAndPrintResponse(String response) {
+    //№2 - you MUST send this request in lobby time to participate in the game (once per round)
+    public static String getPlay() {
+        ApiClient apiClient = new ApiClient();
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            ZombieDefResponse zombieDefResponse = objectMapper.readValue(response, ZombieDefResponse.class);
-            System.out.println(zombieDefResponse.toString());
+            return apiClient.doPut("play/zombidef/participate");
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return null;
     }
 
-    private void parseAndPrintWorldResponse(String response) {
+
+    // №3 - world parts around player that are changing during the game (zombies, players, current player, etc...)
+    public static InfoResponse getApiResponse() {
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            WorldDataResponse worldDataResponse = objectMapper.readValue(response, WorldDataResponse.class);
-            System.out.println(worldDataResponse.toString());
+            ZombiDefApiClient client = new ZombiDefApiClient();
+            return client.fetchUnits();
         } catch (Exception e) {
             e.printStackTrace();
+            return null;
         }
     }
 
+    // №4 - world parts around player that are not changing during the game (zombie zpots)
+    public static WorldDataResponse getWorldDataResponse() {
+        try {
+            WorldDataApiClient client = new WorldDataApiClient();
+            return client.fetchWorldData();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    // №5 - game rounds
+    public static ZombieDefResponse zombieDef() {
+        ApiClient apiClient = new ApiClient();
+        try {
+            String response = apiClient.doGet("rounds/zombidef");
+            return parseAndPrintResponse(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
+    private static ZombieDefResponse parseAndPrintResponse(String response) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.readValue(response, ZombieDefResponse.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
