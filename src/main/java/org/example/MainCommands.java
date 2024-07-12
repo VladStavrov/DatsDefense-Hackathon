@@ -1,6 +1,5 @@
 package org.example;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.Play.GameCommandApiClient;
 import org.example.models.mapInfo.InfoResponse;
 import org.example.models.mapInfo.ZombieDefResponse;
@@ -22,10 +21,10 @@ public class MainCommands {
     }
 
     //№2 - you MUST send this request in lobby time to participate in the game (once per round)
-    public static String getPlay() {
-        ApiClient apiClient = new ApiClient();
+    public static ParticipationResponse getPlay() {
+        ParticipationApiClient participationApiClient = new ParticipationApiClient();
         try {
-            return apiClient.doPut("play/zombidef/participate");
+            return participationApiClient.participate();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -56,25 +55,13 @@ public class MainCommands {
     }
 
     // №5 - game rounds
-    public static ZombieDefResponse zombieDef() {
-        ApiClient apiClient = new ApiClient();
+    public static RoundsResponse zombieDef() {
         try {
-            String response = apiClient.doGet("rounds/zombidef");
-            return parseAndPrintResponse(response);
+            RoundsApiClient client = new RoundsApiClient();
+            return client.fetchRounds();
         } catch (Exception e) {
             e.printStackTrace();
+            return null;
         }
-        return null;
-    }
-
-
-    private static ZombieDefResponse parseAndPrintResponse(String response) {
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.readValue(response, ZombieDefResponse.class);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 }
