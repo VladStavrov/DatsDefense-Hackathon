@@ -135,7 +135,14 @@ class LastAttack {
 @Data
 class WorldDataResponse{
     public String realName;
-    public List<Zombie> zombies;
+    public List<ZPot> zPots;
+}
+
+@Data
+class ZPot {
+    public int x;
+    public int y;
+    public String type;
 }
 
 @Data
@@ -144,8 +151,15 @@ class ZombieDefResponse{
     public String now;
     public List<Round> rounds;
 }
-@Data class Round{}
-
+@Data
+class Round {
+    public int duration;
+    public String endAt;
+    public String name;
+    public int repeat;
+    public String startAt;
+    public String status;
+}
 
 
 @Getter
