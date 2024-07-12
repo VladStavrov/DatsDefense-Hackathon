@@ -2,6 +2,7 @@ package org.example;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
+import lombok.Getter;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -23,6 +24,17 @@ public class ZombiDefApiClient {
         this.objectMapper = new ObjectMapper();
     }
 
+    // TODO Обращаться к этому методу
+    public static ApiResponse getApiResponse() {
+        try {
+            ZombiDefApiClient client = new ZombiDefApiClient();
+            return client.fetchUnits();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     public ApiResponse fetchUnits() throws IOException, InterruptedException, ApiException {
         HttpRequest request = HttpRequest.newBuilder().uri(URI.create(BASE_URL)).header(AUTH_HEADER, API_KEY).header("Content-Type", "application/json").GET().build();
 
@@ -42,12 +54,11 @@ public class ZombiDefApiClient {
     }
 
     public static void main(String[] args) {
-        try {
-            ZombiDefApiClient client = new ZombiDefApiClient();
-            ApiResponse response = client.fetchUnits();
+        ApiResponse response = getApiResponse();
+        if (response != null) {
             System.out.println(response);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } else {
+            System.out.println("Failed to fetch units.");
         }
     }
 }
@@ -121,6 +132,7 @@ class LastAttack {
     public int y;
 }
 
+@Getter
 class ApiException extends Exception {
     private final int statusCode;
     private final ApiErrorResponse errorResponse;
@@ -129,13 +141,5 @@ class ApiException extends Exception {
         super("API returned status code " + statusCode + " with error: " + errorResponse.error);
         this.statusCode = statusCode;
         this.errorResponse = errorResponse;
-    }
-
-    public int getStatusCode() {
-        return statusCode;
-    }
-
-    public ApiErrorResponse getErrorResponse() {
-        return errorResponse;
     }
 }
