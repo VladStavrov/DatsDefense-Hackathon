@@ -1,6 +1,11 @@
 package org.example.Play;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
+
+import org.example.exeptions.ApiErrorResponse;
+import org.example.exeptions.ApiException;
+import org.example.models.Command;
 import org.example.models.PlayRequest;
 
 import java.net.URI;
@@ -18,7 +23,7 @@ public class GameCommandApiClient {
         this.httpClient = HttpClient.newHttpClient();
         this.objectMapper = new ObjectMapper();
     }
-    public void sendCommand(PlayRequest playRequest) throws Exception {
+    public Command sendCommand(PlayRequest playRequest) throws Exception {
         String jsonBody = objectMapper.writeValueAsString(playRequest);
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL))
@@ -30,11 +35,17 @@ public class GameCommandApiClient {
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
         int statusCode = response.statusCode();
+
+
+
         if (statusCode == 200) {
-            System.out.println("Command sent successfully: " + response.body());
+            return objectMapper.readValue(response.body(), Command.class);
+        } else if (statusCode == 400 || statusCode == 401 || statusCode == 403 || statusCode == 404 || statusCode == 429) {
+            ApiErrorResponse errorResponse = objectMapper.readValue(response.body(), ApiErrorResponse.class);
+            throw new ApiException(statusCode, errorResponse);
         } else {
-            System.out.println("Failed to send command. Status code: " + statusCode);
-            System.out.println("Response: " + response.body());
+            throw new RuntimeException("Unexpected response status: " + statusCode);
         }
     }
+
 }
