@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MainScheduler {
+    //TODO Решить, что будем делать с интервалом
     private static final long INTERVAL = 5000;
     private final Map<String, ScriptRunner> scripts = new HashMap<>();
 

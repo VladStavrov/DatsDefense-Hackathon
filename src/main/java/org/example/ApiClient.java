@@ -10,7 +10,9 @@ import java.util.Map;
 
 public class ApiClient {
     //TODO Вставить BASE_URL из документации
-    private static final String BASE_URL = "";
+    private static final String BASE_URL = "https://games-test.datsteam.dev/"; //Тестовый
+//    private static final String BASE_URL = "https://games.datsteam.dev/"; // Основной
+
     private static final String AUTH_TOKEN = "6684220d3195e6684220d31962";
     private final HttpClient httpClient;
 
