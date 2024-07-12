@@ -9,6 +9,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.io.IOException;
+import java.util.List;
 
 public class ZombiDefApiClient {
 
@@ -131,6 +132,21 @@ class LastAttack {
     public int x;
     public int y;
 }
+@Data
+class WorldDataResponse{
+    public String realName;
+    public List<Zombie> zombies;
+}
+
+@Data
+class ZombieDefResponse{
+    public String gameName;
+    public String now;
+    public List<Round> rounds;
+}
+@Data class Round{}
+
+
 
 @Getter
 class ApiException extends Exception {

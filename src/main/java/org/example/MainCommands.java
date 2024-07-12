@@ -61,43 +61,24 @@ public class MainCommands {
             }
         }
 
-        private void parseAndPrintWorldResponse(String response) {
-            try {
-                ObjectMapper objectMapper = new ObjectMapper();
-                JsonNode jsonNode = objectMapper.readTree(response);
-
-                String realmName = jsonNode.get("realmName").asText();
-                JsonNode zpots = jsonNode.get("zpots");
-
-                System.out.println("Realm Name: " + realmName);
-                System.out.println("Zpots: ");
-                for (JsonNode zpot : zpots) {
-                    System.out.println("  Zpot: " + zpot.toString());
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+    private void parseAndPrintResponse(String response) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            ZombieDefResponse zombieDefResponse = objectMapper.readValue(response, ZombieDefResponse.class);
+            System.out.println(zombieDefResponse.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+    }
 
-
-        private void parseAndPrintResponse(String response) {
-            try {
-                ObjectMapper mapper = new ObjectMapper();
-                JsonNode root = mapper.readTree(response);
-                String game = root.get("game").asText();
-                String now = root.get("now").asText();
-                JsonNode rounds = root.get("rounds");
-
-
-                System.out.println("Game "+game);
-                System.out.println("Time "+ now);
-                System.out.println("Rounds "+rounds);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+    private void parseAndPrintWorldResponse(String response) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            WorldDataResponse worldDataResponse = objectMapper.readValue(response, WorldDataResponse.class);
+            System.out.println(worldDataResponse.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
+    }
 
 }
