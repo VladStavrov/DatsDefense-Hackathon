@@ -1,16 +1,15 @@
 package org.example;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Data;
 import org.example.exeptions.ApiErrorResponse;
 import org.example.exeptions.ApiException;
+import org.example.models.worldInfo.WorldDataResponse;
 
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.io.IOException;
-import java.util.List;
 
 public class WorldDataApiClient {
 
@@ -59,15 +58,3 @@ public class WorldDataApiClient {
     }
 }
 
-@Data
-class WorldDataResponse {
-    private String realmName;
-    private List<ZPot> zpots;
-}
-
-@Data
-class ZPot {
-    private int x;
-    private int y;
-    private String type;
-}

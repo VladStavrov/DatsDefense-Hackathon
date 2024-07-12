@@ -2,13 +2,16 @@ package org.example;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.Play.GameCommandApiClient;
-import org.example.models.CommandResponse;
-import org.example.models.PlayRequest;
+import org.example.models.mapInfo.InfoResponse;
+import org.example.models.mapInfo.ZombieDefResponse;
+import org.example.models.play.CommandResponse;
+import org.example.models.play.PlayRequest;
+import org.example.models.worldInfo.WorldDataResponse;
 
 public class MainCommands {
 
     //№1 - commands to build and attack, should be sent only once per turn
-    public static CommandResponse getApiResponse(PlayRequest playRequest) {
+    public static CommandResponse playResponse(PlayRequest playRequest) {
         try {
             GameCommandApiClient client = new GameCommandApiClient();
             return client.sendCommand(playRequest);

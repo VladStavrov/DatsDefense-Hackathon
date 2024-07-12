@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.example.exeptions.ApiErrorResponse;
 import org.example.exeptions.ApiException;
-import org.example.models.CommandResponse;
-import org.example.models.PlayRequest;
+import org.example.models.play.CommandResponse;
+import org.example.models.play.PlayRequest;
 
 import java.net.URI;
 import java.net.http.HttpClient;

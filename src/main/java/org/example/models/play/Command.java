@@ -1,4 +1,4 @@
-package org.example.models;
+package org.example.models.play;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
