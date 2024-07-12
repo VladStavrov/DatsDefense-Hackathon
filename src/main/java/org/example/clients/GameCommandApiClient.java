@@ -18,23 +18,19 @@ public class GameCommandApiClient {
     private static final String AUTH_HEADER = "X-Auth-Token";
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
+
     public GameCommandApiClient() {
         this.httpClient = HttpClient.newHttpClient();
         this.objectMapper = new ObjectMapper();
     }
+
     public CommandResponse sendCommand(PlayRequest playRequest) throws Exception {
         String jsonBody = objectMapper.writeValueAsString(playRequest);
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL))
-                .header(AUTH_HEADER, API_KEY)
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
-                .build();
+        HttpRequest request = HttpRequest.newBuilder().uri(URI.create(BASE_URL)).header(AUTH_HEADER, API_KEY).header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(jsonBody)).build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
         int statusCode = response.statusCode();
-
 
 
         if (statusCode == 200) {

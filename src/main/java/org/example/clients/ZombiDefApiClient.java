@@ -25,7 +25,7 @@ public class ZombiDefApiClient {
         this.objectMapper = new ObjectMapper();
     }
 
-      public static InfoResponse getApiResponse() {
+    public static InfoResponse getApiResponse() {
         try {
             ZombiDefApiClient client = new ZombiDefApiClient();
             return client.fetchUnits();

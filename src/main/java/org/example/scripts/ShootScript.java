@@ -9,11 +9,11 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public  class ShootScript {
+public class ShootScript {
 
-    public static List<Attack> shoot(InfoResponse infoResponse, WorldDataResponse worldDataResponse){
-         List<Attack> attack = new ArrayList<>();
-         //
-         return attack;
+    public static List<Attack> shoot(InfoResponse infoResponse, WorldDataResponse worldDataResponse) {
+        List<Attack> attack = new ArrayList<>();
+        //
+        return attack;
     }
 }

@@ -8,5 +8,4 @@ import java.util.List;
 public class CommandResponse {
     private PlayRequest playRequest;
     private List<String> errors;
-
 }
