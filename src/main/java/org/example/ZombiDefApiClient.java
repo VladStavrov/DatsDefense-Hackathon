@@ -26,7 +26,6 @@ public class ZombiDefApiClient {
         this.objectMapper = new ObjectMapper();
     }
 
-    // TODO Обращаться к этому методу
     public static InfoResponse getApiResponse() {
         try {
             ZombiDefApiClient client = new ZombiDefApiClient();
@@ -143,12 +142,3 @@ class ZombieDefResponse {
     public List<Round> rounds;
 }
 
-@Data
-class Round {
-    public int duration;
-    public String endAt;
-    public String name;
-    public int repeat;
-    public String startAt;
-    public String status;
-}
