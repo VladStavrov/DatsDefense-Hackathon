@@ -6,7 +6,7 @@ import java.util.List;
 
 @Data
 public class CommandResponse {
-    private Command acceptedCommands;
+    private PlayRequest playRequest;
     private List<String> errors;
 
 }

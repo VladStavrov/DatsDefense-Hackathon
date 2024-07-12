@@ -1,16 +1,15 @@
-package org.example;
+package org.example.clients;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Data;
+import org.example.models.RoundsResponse;
 import org.example.exeptions.ApiErrorResponse;
 import org.example.exeptions.ApiException;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.io.IOException;
-import java.util.List;
 
 public class RoundsApiClient {
 
@@ -58,21 +57,3 @@ public class RoundsApiClient {
         }
     }
 }
-
-@Data
-class RoundsResponse {
-    private String gameName;
-    private String now;
-    private List<Round> rounds;
-}
-
-@Data
-class Round {
-    private int duration;
-    private String endAt;
-    private String name;
-    private int repeat;
-    private String startAt;
-    private String status;
-}
-
