@@ -15,31 +15,29 @@
             grid-template-columns: repeat(1000, 20px); /* Adjust the number of columns as needed */
             grid-template-rows: repeat(1000, 20px); /* Adjust the number of rows as needed */
             gap: 1px;
-            background-color: #ccc;
+           // background-color: #ccc;
         }
         .tile {
             width: 20px;
             height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
         }
         .base {
             background-color: blue;
-        }
-        .head {
-            background-color: orange;
         }
         .enemyBlock {
             background-color: red;
         }
         .zombie {
             background-color: green;
-            color: white;
         }
         .player {
             background-color: yellow;
+        }
+        .head{
+            background-color: yellow;
+        }
+        .spot{
+            background-color: #520065;
         }
     </style>
 </head>
@@ -48,7 +46,14 @@
     <div id="map"></div>
 </div>
 <script>
+    const DIRECTIONS = {
+        right: '→',
+        left: '←',
+        up: '↑',
+        down: '↓'
+    };
     const BASE_URL = 'https://games-test.datsteam.dev/play/zombidef/units';
+    const BASE_URL_Spawn = 'https://games-test.datsteam.dev/play/zombidef/world';
     const API_KEY = '6684220d3195e6684220d31962';
     const AUTH_HEADER = 'X-Auth-Token';
 
@@ -57,22 +62,25 @@
 
     const COLORS = {
         base: 'blue',
-        head: 'orange',
         enemyBlock: 'red',
         zombie: 'green',
-        player: 'yellow'
+        player: 'yellow',
+        head: 'yellow',
+        spot: '#520065',
+        enemyHead: '#c45555'
     };
-
-    const DIRECTIONS = {
-        right: '→',
-        left: '←',
-        up: '↑',
-        down: '↓'
+    const IMAGES = {
+        base:  "url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS0SfTTY0BLmd31jVAvPo79JihPcYeGN_brEg&s')",
+        enemyBlock: "url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSmOcJz6tjLCZIBoTGdE0Lc7zu0i7mffn6hgA&s')",
+        zombie: "url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS9IH-2JM8Ybeb6F81581RFd1WQsc4HfHmx6A&s')",
+        player:  "url('')",
+        head:  "url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQWuHv80Zr6ok1rV5_ZojtdP_stAQKjeXpwg&s')",
+        spot:  "url('https://png.pngtree.com/png-vector/20210207/ourlarge/pngtree-tombstone-with-inscription-on-the-front-and-pedestal-clipart-png-image_2885261.jpg')",
+        enemyHead:  "url('https://png.pngtree.com/png-vector/20240309/ourlarge/pngtree-medieval-european-stone-castle-png-image_11908897.png')"
     };
-
     async function fetchData() {
         try {
-            /*const response = await fetch(BASE_URL, {
+            const response = await fetch(BASE_URL, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -82,7 +90,23 @@
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
-            const data = await response.json();*/
+            const data = await response.json();
+
+
+
+            const responseS = await fetch(BASE_URL_Spawn, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    [AUTH_HEADER]: API_KEY
+                }
+            });
+            if (!responseS.ok) {
+                throw new Error(`HTTP error! Status: ${responseS.status}`);
+            }
+            const dataS = await responseS.json();
+
+
             const textTest = `{
                     "realmName": "test-day2-14",
                     "player": {
@@ -95,7 +119,7 @@
                     },
                     "base": [
                         {"id": "0190abd6-cf59-797a-9803-aed4b3342ae4", "x": 28, "y": 5, "health": 75, "attack": 10, "range": 5, "lastAttack": null},
-                        {"id": "0190abd6-cf59-795f-9465-507fe173173a", "x": 27, "y": 4, "health": 300, "attack": 40, "range": 8, "isHead": true, "lastAttack": null},
+                        {"id": "0190abd6-cf59-795f-9465-507fe173173a", "x": 270, "y": 14, "health": 300, "attack": 40, "range": 8, "isHead": true, "lastAttack": null},
                         {"id": "0190abd6-cf59-796e-adcb-9aa6ac9a8dfb", "x": 28, "y": 4, "health": 100, "attack": 10, "range": 5, "lastAttack": null},
                         {"id": "0190abd6-cf59-7974-bcff-c2c0fa59a887", "x": 27, "y": 5, "health": 44, "attack": 10, "range": 5, "lastAttack": null}
                     ],
@@ -119,57 +143,72 @@
                     "turn": 69
                 }`;
             const data2 = JSON.parse(textTest);
-            drawMap(data);
+            drawMap(data,dataS);
         } catch (error) {
             console.error('Error fetching data:', error);
         }
     }
 
-    function drawMap(data) {
+    function drawMap(data,dataS) {
         // Очистка карты
         mapElement.innerHTML = '';
 
         const { base, enemyBlocks, zombies, player } = data;
-
+        const {zpots} = dataS;
+        console.log()
         // Функция для создания div элементов на карте
-        function createTile(color, x, y, content = '') {
+        function createTile(color,image, x, y, content = '') {
             const tile = document.createElement('div');
             tile.classList.add('tile');
+            tile.style.backgroundImage = image;
+            tile.style.backgroundSize = "20px 20px";
             tile.style.backgroundColor = color;
             tile.style.gridColumnStart = x + 1;
             tile.style.gridRowStart = y + 1;
             tile.textContent = content;
             mapElement.appendChild(tile);
         }
-
         // Отрисовка баз, если не null
         if (base) {
             base.forEach(item => {
                 if (item.isHead) {
-                    createTile(COLORS.head, item.x, item.y);
+                    createTile(COLORS.head,IMAGES.head, item.x, item.y);
                 } else {
-                    createTile(COLORS.base, item.x, item.y);
+                    createTile(COLORS.base,IMAGES.base, item.x, item.y);
                 }
             });
         }
 
+
         // Отрисовка вражеских блоков, если не null
+        if (zpots) {
+            zpots.forEach(item => {
+                createTile(COLORS.spot,IMAGES.spot, item.x, item.y);
+            });
+        }
+
         if (enemyBlocks) {
             enemyBlocks.forEach(item => {
-                createTile(COLORS.enemyBlock, item.x, item.y);
+                if(item.attack == 40){
+                    createTile(COLORS.enemyHead,IMAGES.enemyHead, item.x, item.y);
+                }
+                else{
+                    createTile(COLORS.enemyBlock,IMAGES.enemyHead, item.x, item.y);
+                }
+
             });
         }
 
         // Отрисовка зомби, если не null
         if (zombies) {
             zombies.forEach(item => {
-                createTile(COLORS.zombie, item.x, item.y, DIRECTIONS[item.direction] || '');
+                createTile(COLORS.zombie,IMAGES.zombie, item.x, item.y, DIRECTIONS[item.direction] || '');
             });
         }
 
         // Отрисовка игрока, если не null
         if (player) {
-            createTile(COLORS.player, player.x, player.y);
+            createTile(COLORS.player,IMAGES.player, player.x, player.y);
         }
     }
 

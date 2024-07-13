@@ -81,8 +81,8 @@ public class BuildScript {
 
     // Метод для фильтрации координат
     public static boolean shouldSkipCoordinates(int x, int y) {
-        //return false;
-        return (x % 2 == 0) && (y % 2 == 0);
+        return false;
+        //return (x % 2 == 0) && (y % 2 == 0);
     }
 
     public static boolean checkCoordinates(int x, int y, InfoResponse infoResponse, WorldDataResponse worldDataResponse, List<Build> currentBuild, int distanceEnemy, int distanceSpotsZombie, int distanceZombie) {
