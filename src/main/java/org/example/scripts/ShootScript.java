@@ -20,7 +20,7 @@ public class ShootScript {
         logger.info("Начало процесса атаки");
 
         // Проверка на пустоту массивов зомби и блоков врагов
-        if (infoResponse.getZombies()!=null && infoResponse.getEnemyBlocks()!= null) {
+        if (infoResponse.getZombies() == null && infoResponse.getEnemyBlocks() == null) {
             logger.info("Зомби и блоки врагов отсутствуют, атака невозможна");
             return new AttackResponse(attacks, infoResponse);
         }
@@ -50,7 +50,7 @@ public class ShootScript {
 
         List<Base> remainingBaseBlocks = new ArrayList<>(Arrays.asList(infoResponse.getBase()));
         List<EnemyBlock> highPriorityEnemyBlocks = new ArrayList<>();
-        if (infoResponse.getEnemyBlocks()!=null) {
+        if (infoResponse.getEnemyBlocks() != null) {
             highPriorityEnemyBlocks = findHighPriorityEnemyBlocks(Arrays.asList(infoResponse.getEnemyBlocks()));
         }
         List<EnemyBlock> remainingEnemyBlocks = new ArrayList<>(Arrays.asList(infoResponse.getEnemyBlocks()));
