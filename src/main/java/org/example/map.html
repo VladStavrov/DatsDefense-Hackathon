@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Simulated Map</title>
+    <style>
+        #map-container {
+            width: 100%;
+            height: 800px;
+            overflow: auto;
+        }
+        #map {
+            display: grid;
+            grid-template-columns: repeat(1000, 20px); /* Adjust the number of columns as needed */
+            grid-template-rows: repeat(1000, 20px); /* Adjust the number of rows as needed */
+            gap: 1px;
+            background-color: #ccc;
+        }
+        .tile {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .base {
+            background-color: blue;
+        }
+        .head {
+            background-color: orange;
+        }
+        .enemyBlock {
+            background-color: red;
+        }
+        .zombie {
+            background-color: green;
+            color: white;
+        }
+        .player {
+            background-color: yellow;
+        }
+    </style>
+</head>
+<body>
+<div id="map-container">
+    <div id="map"></div>
+</div>
+<script>
+    const BASE_URL = 'https://games-test.datsteam.dev/play/zombidef/units';
+    const API_KEY = '6684220d3195e6684220d31962';
+    const AUTH_HEADER = 'X-Auth-Token';
+
+    const mapElement = document.getElementById('map');
+    const TILE_SIZE = 20;
+
+    const COLORS = {
+        base: 'blue',
+        head: 'orange',
+        enemyBlock: 'red',
+        zombie: 'green',
+        player: 'yellow'
+    };
+
+    const DIRECTIONS = {
+        right: '→',
+        left: '←',
+        up: '↑',
+        down: '↓'
+    };
+
+    async function fetchData() {
+        try {
+            /*const response = await fetch(BASE_URL, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    [AUTH_HEADER]: API_KEY
+                }
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const data = await response.json();*/
+            const textTest = `{
+                    "realmName": "test-day2-14",
+                    "player": {
+                        "gold": 10,
+                        "points": 0,
+                        "name": "Три джависта в составе коалиции против CR/LF",
+                        "zombieKills": 0,
+                        "enemyBlockKills": 0,
+                        "gameEndedAt": null
+                    },
+                    "base": [
+                        {"id": "0190abd6-cf59-797a-9803-aed4b3342ae4", "x": 28, "y": 5, "health": 75, "attack": 10, "range": 5, "lastAttack": null},
+                        {"id": "0190abd6-cf59-795f-9465-507fe173173a", "x": 27, "y": 4, "health": 300, "attack": 40, "range": 8, "isHead": true, "lastAttack": null},
+                        {"id": "0190abd6-cf59-796e-adcb-9aa6ac9a8dfb", "x": 28, "y": 4, "health": 100, "attack": 10, "range": 5, "lastAttack": null},
+                        {"id": "0190abd6-cf59-7974-bcff-c2c0fa59a887", "x": 27, "y": 5, "health": 44, "attack": 10, "range": 5, "lastAttack": null}
+                    ],
+                    "zombies": [
+                        {"x": 25, "y": 6, "id": "e3c7cf19-fa07-451d-aa8a-a2f1b0dea27d", "type": "bomber", "health": 15, "attack": 31, "speed": 1, "waitTurns": 1, "direction": "right"},
+                        {"x": 30, "y": 13, "id": "372cf38c-d375-427c-addb-a52567a5700e", "type": "juggernaut", "health": 15, "attack": 999999, "speed": 1, "waitTurns": 1, "direction": "right"},
+                        {"x": 27, "y": 8, "id": "fdb72bb2-e4ee-421e-b2e6-56fd1e076da7", "type": "chaos_knight", "health": 15, "attack": 31, "speed": 3, "waitTurns": 1, "direction": "down"},
+                        {"x": 24, "y": 3, "id": "f5171657-092d-43af-b39d-5318a1b93b76", "type": "liner", "health": 15, "attack": 31, "speed": 1, "waitTurns": 1, "direction": "right"},
+                        {"x": 35, "y": 7, "id": "2b72a157-46ab-49b0-a071-0d2832c44fd7", "type": "liner", "health": 15, "attack": 31, "speed": 1, "waitTurns": 1, "direction": "right"},
+                        {"x": 22, "y": 8, "id": "0e59d8ca-27fd-4827-986b-d9143f9f6581", "type": "normal", "health": 15, "attack": 31, "speed": 1, "waitTurns": 1, "direction": "left"},
+                        {"x": 21, "y": 5, "id": "2ce49c30-d761-4749-8204-2b611b6080de", "type": "chaos_knight", "health": 15, "attack": 31, "speed": 3, "waitTurns": 1, "direction": "left"},
+                        {"x": 23, "y": 5, "id": "9f2b0078-dcd6-4f0d-85c6-c3c6970d122c", "type": "fast", "health": 15, "attack": 31, "speed": 2, "waitTurns": 1, "direction": "right"},
+                        {"x": 25, "y": 5, "id": "a13551e7-b526-445e-a01e-bff38e1631d2", "type": "normal", "health": 17, "attack": 37, "speed": 1, "waitTurns": 1, "direction": "left"},
+                        {"x": 21, "y": 6, "id": "ea9aed1b-dda3-420b-ab4d-4ac26673c97b", "type": "liner", "health": 15, "attack": 31, "speed": 1, "waitTurns": 1, "direction": "left"},
+                        {"x": 25, "y": 8, "id": "ed656939-7bca-49ae-9b4b-01ab340a81a2", "type": "bomber", "health": 17, "attack": 37, "speed": 1, "waitTurns": 1, "direction": "left"},
+                        {"x": 18, "y": 8, "id": "cc1144d9-81ee-490e-829c-71945cc0b89c", "type": "normal", "health": 15, "attack": 31, "speed": 1, "waitTurns": 1, "direction": "right"},
+                        {"x": 32, "y": 9, "id": "73769d4c-ca0e-42af-a16a-389ecd1db120", "type": "juggernaut", "health": 15, "attack": 999999, "speed": 1, "waitTurns": 1, "direction": "right"}
+                    ],
+                    "enemyBlocks": null,
+                    "turnEndsInMs": 1263,
+                    "turn": 69
+                }`;
+            const data2 = JSON.parse(textTest);
+            drawMap(data);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    }
+
+    function drawMap(data) {
+        // Очистка карты
+        mapElement.innerHTML = '';
+
+        const { base, enemyBlocks, zombies, player } = data;
+
+        // Функция для создания div элементов на карте
+        function createTile(color, x, y, content = '') {
+            const tile = document.createElement('div');
+            tile.classList.add('tile');
+            tile.style.backgroundColor = color;
+            tile.style.gridColumnStart = x + 1;
+            tile.style.gridRowStart = y + 1;
+            tile.textContent = content;
+            mapElement.appendChild(tile);
+        }
+
+        // Отрисовка баз, если не null
+        if (base) {
+            base.forEach(item => {
+                if (item.isHead) {
+                    createTile(COLORS.head, item.x, item.y);
+                } else {
+                    createTile(COLORS.base, item.x, item.y);
+                }
+            });
+        }
+
+        // Отрисовка вражеских блоков, если не null
+        if (enemyBlocks) {
+            enemyBlocks.forEach(item => {
+                createTile(COLORS.enemyBlock, item.x, item.y);
+            });
+        }
+
+        // Отрисовка зомби, если не null
+        if (zombies) {
+            zombies.forEach(item => {
+                createTile(COLORS.zombie, item.x, item.y, DIRECTIONS[item.direction] || '');
+            });
+        }
+
+        // Отрисовка игрока, если не null
+        if (player) {
+            createTile(COLORS.player, player.x, player.y);
+        }
+    }
+
+    // Запуск функции fetchData раз в 2 секунды
+    setInterval(fetchData, 2000);
+
+    // Начальная загрузка данных
+    fetchData();
+</script>
+</body>
+</html>
