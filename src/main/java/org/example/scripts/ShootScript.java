@@ -38,7 +38,7 @@ public class ShootScript {
 
         // Обработка зомби, если они существуют
         Map<String, List<Zombie>> zombiesByLocation = new HashMap<>();
-        if (infoResponse.getZombies().length > 0) {
+        if (infoResponse.getZombies() != null) {
             zombiesByLocation = mapZombiesByLocation(Arrays.asList(infoResponse.getZombies()));
         }
 
@@ -53,19 +53,19 @@ public class ShootScript {
         if (infoResponse.getEnemyBlocks() != null) {
             highPriorityEnemyBlocks = findHighPriorityEnemyBlocks(Arrays.asList(infoResponse.getEnemyBlocks()));
         }
-        List<EnemyBlock> remainingEnemyBlocks = new ArrayList<>(Arrays.asList(infoResponse.getEnemyBlocks()));
+        List<EnemyBlock> remainingEnemyBlocks = infoResponse.getEnemyBlocks() != null ? new ArrayList<>(Arrays.asList(infoResponse.getEnemyBlocks())) : new ArrayList<>();
 
         int highPriorityAttacks = 0;
         int totalEnemyBlockAttacks = 0;
 
         // Выполнение атак по EnemyBlock с атакой 40
-        if (!highPriorityEnemyBlocks.isEmpty()) {
+        if (highPriorityEnemyBlocks != null) {
             highPriorityAttacks = executeHighPriorityEnemyBlockAttacks(attacks, remainingBaseBlocks, highPriorityEnemyBlocks);
             remainingEnemyBlocks.removeAll(highPriorityEnemyBlocks);
         }
 
         // Выполнение атак по зомби
-        if (!sortedZombiesByLocation.isEmpty()) {
+        if (sortedZombiesByLocation != null) {
             List<Zombie> remainingZombies = new ArrayList<>(Arrays.asList(infoResponse.getZombies()));
             executeZombieAttacks(attacks, remainingBaseBlocks, sortedZombiesByLocation, remainingZombies);
 
@@ -108,16 +108,13 @@ public class ShootScript {
     }
 
     private static void executeZombieAttacks(List<Attack> attacks, List<Base> baseBlocks, List<Map.Entry<String, List<Zombie>>> sortedZombiesByLocation, List<Zombie> remainingZombies) {
-        Iterator<Base> baseIterator = baseBlocks.iterator();
+        List<Base> baseBlocksToRemove = new ArrayList<>();
 
-        while (baseIterator.hasNext()) {
-            Base baseBlock = baseIterator.next();
+        for (Base baseBlock : baseBlocks) {
             int baseX = baseBlock.getX();
             int baseY = baseBlock.getY();
             int attackRadius = baseBlock.getRange();
             int attackPower = baseBlock.getAttack();
-
-            boolean attacked = false;
 
             for (Map.Entry<String, List<Zombie>> entry : sortedZombiesByLocation) {
                 List<Zombie> zombiesInLocation = entry.getValue();
@@ -127,48 +124,42 @@ public class ShootScript {
 
                 if (distance <= attackRadius) {
                     shootZombies(attacks, baseBlock, attackPower, zombiesInLocation, remainingZombies);
-                    attacked = true;
-                    baseIterator.remove();  // Удалить блок базы после атаки
+                    baseBlocksToRemove.add(baseBlock);  // Добавить блок базы для удаления после атаки
                     break;
                 }
             }
-
-            if (attacked) break;
         }
+
+        baseBlocks.removeAll(baseBlocksToRemove);  // Удалить блоки базы после атаки
     }
 
     private static int executeHighPriorityEnemyBlockAttacks(List<Attack> attacks, List<Base> baseBlocks, List<EnemyBlock> enemyBlocks) {
         int highPriorityAttacks = 0;
+        List<Base> baseBlocksToRemove = new ArrayList<>();
 
-        Iterator<Base> baseIterator = baseBlocks.iterator();
-
-        while (baseIterator.hasNext()) {
-            Base baseBlock = baseIterator.next();
+        for (Base baseBlock : baseBlocks) {
             int baseX = baseBlock.getX();
             int baseY = baseBlock.getY();
             int attackRadius = baseBlock.getRange();
-
-            boolean attacked = false;
 
             for (EnemyBlock enemyBlock : enemyBlocks) {
                 double distance = calculateDistance(baseX, baseY, enemyBlock.getX(), enemyBlock.getY());
                 if (distance <= attackRadius) {
                     shootEnemyBlock(attacks, baseBlock, enemyBlock);
                     highPriorityAttacks++;
-                    attacked = true;
-                    baseIterator.remove();  // Удалить блок базы после атаки
+                    baseBlocksToRemove.add(baseBlock);  // Добавить блок базы для удаления после атаки
                     break;
                 }
             }
-
-            if (attacked) break;
         }
 
+        baseBlocks.removeAll(baseBlocksToRemove);  // Удалить блоки базы после атаки
         return highPriorityAttacks;
     }
 
     private static int executeEnemyBlockAttacks(List<Attack> attacks, List<Base> baseBlocks, List<EnemyBlock> enemyBlocks, List<Map.Entry<String, List<Zombie>>> updatedZombiesByLocation) {
         int totalEnemyBlockAttacks = 0;
+        List<Base> baseBlocksToRemove = new ArrayList<>();
 
         for (Base baseBlock : baseBlocks) {
             int baseX = baseBlock.getX();
@@ -184,6 +175,7 @@ public class ShootScript {
                 if (distance <= attackRadius) {
                     shootEnemyBlock(attacks, baseBlock, enemyBlock);
                     totalEnemyBlockAttacks++;
+                    baseBlocksToRemove.add(baseBlock);  // Добавить блок базы для удаления после атаки
                     attacked = true;
                     break;
                 }
@@ -200,12 +192,13 @@ public class ShootScript {
 
                 if (distance <= attackRadius) {
                     shootZombies(attacks, baseBlock, attackPower, zombiesInLocation, new ArrayList<>(zombiesInLocation));
-                    attacked = true;
+                    baseBlocksToRemove.add(baseBlock);  // Добавить блок базы для удаления после атаки
                     break;
                 }
             }
         }
 
+        baseBlocks.removeAll(baseBlocksToRemove);  // Удалить блоки базы после атаки
         return totalEnemyBlockAttacks;
     }
 
