@@ -13,7 +13,7 @@ import java.net.http.HttpResponse;
 
 public class RoundsApiClient {
 
-    private static final String BASE_URL = "https://games-test.datsteam.dev/rounds/zombidef";
+    private static final String BASE_URL = "https://games.datsteam.dev/rounds/zombidef";
     private static final String API_KEY = "6684220d3195e6684220d31962";
     private static final String AUTH_HEADER = "X-Auth-Token";
 
