@@ -27,9 +27,10 @@ public class BuildScript {
         int startY = -1;
         List<Build> build = new ArrayList<>();
         for (Base base : bases) {
-            if (base.isHead()) {
+            if (base.isHead() ) {
                 startX = base.getX();
                 startY = base.getY();
+                System.out.println("Head: "+startX+" : "+startY);
                 break;
             }
         }
@@ -37,7 +38,8 @@ public class BuildScript {
             throw new IllegalArgumentException("No head base found");
         }
         int radius = 0;
-        while(money>0){
+
+        while(money>0 || radius<=200){
             radius++;
             int x,y;
             int maxX = startX + radius;
@@ -52,8 +54,8 @@ public class BuildScript {
                             money--;
 
                             // Add new Base to bases array
-                            //  Base newBase = new Base(0, 0, "new" + money, false, new LastAttack(), 77777, x, y);
-                            //bases = addBaseToArray(bases, newBase);
+                            Base newBase = new Base(0, 0, "new" + money, false, new LastAttack(), 77, x, y);
+                            bases = addBaseToArray(bases, newBase);
 
                             if (money<=0){
                                 //printGrid(bases);
@@ -73,14 +75,26 @@ public class BuildScript {
         if (x < 0 || y < 0) {
             return false;
         }
+        double distance = 1000;
+        double newDistance = 1000;
         for (Base base : infoResponse.getBase()) {
             if (base.x == x && base.y == y) {
                 return false;
             }
+
+            newDistance = Math.sqrt(Math.pow(base.x - x, 2) + Math.pow(base.y - y, 2));
+            if (newDistance < distance) {
+                distance = newDistance;
+            }
         }
-        for (Zombie zombie : infoResponse.getZombies()) {
-            if (zombie.x == x && zombie.y == y) {
-                return false;
+        if(distance > 1){
+            return false;
+        }
+        if (infoResponse != null && infoResponse.getZombies() != null) {
+            for (Zombie zombie : infoResponse.getZombies()) {
+                if (zombie.x == x && zombie.y == y) {
+                    return false;
+                }
             }
         }
 
