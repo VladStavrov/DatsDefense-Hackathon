@@ -41,8 +41,8 @@ public class AutoPlayScript {
                 PlayRequest playRequest = new PlayRequest();
                 try {
                     AttackResponse attackResponse = shoot(infoResponse);
-                    List<Attack> attack = attackResponse.getAttacks();
-                    InfoResponse updatedInfoResponse = attackResponse.getUpdatedInfoResponse();
+                    List<Attack> attack = attackResponse.attacks();
+                    InfoResponse updatedInfoResponse = attackResponse.updatedInfoResponse();
                     List<Build> builds = build(updatedInfoResponse, worldDataResponse);
                     //MoveBase moveBase = moveBase(updatedInfoResponse, worldDataResponse);
 

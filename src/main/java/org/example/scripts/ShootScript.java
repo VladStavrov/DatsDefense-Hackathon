@@ -12,27 +12,18 @@ public class ShootScript {
 
     private static final Logger logger = Logger.getLogger(ShootScript.class.getName());
 
-    public static class AttackResponse {
-        private List<Attack> attacks;
-        private InfoResponse updatedInfoResponse;
-
-        public AttackResponse(List<Attack> attacks, InfoResponse updatedInfoResponse) {
-            this.attacks = attacks;
-            this.updatedInfoResponse = updatedInfoResponse;
-        }
-
-        public List<Attack> getAttacks() {
-            return attacks;
-        }
-
-        public InfoResponse getUpdatedInfoResponse() {
-            return updatedInfoResponse;
-        }
+    public record AttackResponse(List<Attack> attacks, InfoResponse updatedInfoResponse) {
     }
 
     public static AttackResponse shoot(InfoResponse infoResponse) {
         List<Attack> attacks = new ArrayList<>();
         logger.info("Начало процесса атаки");
+
+        // Проверка на пустоту массивов зомби и блоков врагов
+        if (infoResponse.getZombies().length == 0 && infoResponse.getEnemyBlocks().length == 0) {
+            logger.info("Зомби и блоки врагов отсутствуют, атака невозможна");
+            return new AttackResponse(attacks, infoResponse);
+        }
 
         // Найти центральный блок базы (head)
         Base centerBaseBlock = findCenterBaseBlock(infoResponse.getBase());
@@ -45,14 +36,23 @@ public class ShootScript {
         int centerX = centerBaseBlock.getX();
         int centerY = centerBaseBlock.getY();
 
-        // Карта зомби по их координатам
-        Map<String, List<Zombie>> zombiesByLocation = mapZombiesByLocation(Arrays.asList(infoResponse.getZombies()));
+        // Обработка зомби, если они существуют
+        Map<String, List<Zombie>> zombiesByLocation = new HashMap<>();
+        if (infoResponse.getZombies().length > 0) {
+            zombiesByLocation = mapZombiesByLocation(Arrays.asList(infoResponse.getZombies()));
+        }
 
         // Сортировка зомби по расстоянию от центра
-        List<Map.Entry<String, List<Zombie>>> sortedZombiesByLocation = sortZombiesByDistance(centerX, centerY, zombiesByLocation);
+        List<Map.Entry<String, List<Zombie>>> sortedZombiesByLocation = new ArrayList<>();
+        if (!zombiesByLocation.isEmpty()) {
+            sortedZombiesByLocation = sortZombiesByDistance(centerX, centerY, zombiesByLocation);
+        }
 
         List<Base> remainingBaseBlocks = new ArrayList<>(Arrays.asList(infoResponse.getBase()));
-        List<EnemyBlock> highPriorityEnemyBlocks = findHighPriorityEnemyBlocks(Arrays.asList(infoResponse.getEnemyBlocks()));
+        List<EnemyBlock> highPriorityEnemyBlocks = new ArrayList<>();
+        if (infoResponse.getEnemyBlocks().length > 0) {
+            highPriorityEnemyBlocks = findHighPriorityEnemyBlocks(Arrays.asList(infoResponse.getEnemyBlocks()));
+        }
         List<EnemyBlock> remainingEnemyBlocks = new ArrayList<>(Arrays.asList(infoResponse.getEnemyBlocks()));
 
         int highPriorityAttacks = 0;
@@ -65,21 +65,24 @@ public class ShootScript {
         }
 
         // Выполнение атак по зомби
-        List<Zombie> remainingZombies = new ArrayList<>(Arrays.asList(infoResponse.getZombies()));
-        executeZombieAttacks(attacks, remainingBaseBlocks, sortedZombiesByLocation, remainingZombies);
+        if (!sortedZombiesByLocation.isEmpty()) {
+            List<Zombie> remainingZombies = new ArrayList<>(Arrays.asList(infoResponse.getZombies()));
+            executeZombieAttacks(attacks, remainingBaseBlocks, sortedZombiesByLocation, remainingZombies);
 
-        // Обновить массив зомби после атак
-        List<Map.Entry<String, List<Zombie>>> updatedZombiesByLocation = new ArrayList<>(mapZombiesByLocation(remainingZombies).entrySet());
+            // Обновить массив зомби после атак
+            List<Map.Entry<String, List<Zombie>>> updatedZombiesByLocation = new ArrayList<>(mapZombiesByLocation(remainingZombies).entrySet());
 
-        // Выполнение атак по обычным EnemyBlock и оставшимся зомби
-        if (!remainingEnemyBlocks.isEmpty()) {
-            totalEnemyBlockAttacks = executeEnemyBlockAttacks(attacks, remainingBaseBlocks, remainingEnemyBlocks, updatedZombiesByLocation);
+            // Выполнение атак по обычным EnemyBlock и оставшимся зомби
+            if (!remainingEnemyBlocks.isEmpty()) {
+                totalEnemyBlockAttacks = executeEnemyBlockAttacks(attacks, remainingBaseBlocks, remainingEnemyBlocks, updatedZombiesByLocation);
+            }
+
+            infoResponse.setZombies(remainingZombies.toArray(new Zombie[0]));
         }
 
-        logAttackSummary(attacks, remainingZombies, infoResponse, highPriorityAttacks, totalEnemyBlockAttacks);
+        logAttackSummary(attacks, Arrays.asList(infoResponse.getZombies()), infoResponse, highPriorityAttacks, totalEnemyBlockAttacks);
 
         // Обновление InfoResponse
-        infoResponse.setZombies(remainingZombies.toArray(new Zombie[0]));
         infoResponse.setEnemyBlocks(remainingEnemyBlocks.toArray(new EnemyBlock[0]));
 
         logger.info("Процесс атаки завершен");
