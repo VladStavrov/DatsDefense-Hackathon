@@ -48,7 +48,7 @@ public class BuildScript {
                 for (y=startY-radius;y<=maxY; y++) {
                     double distance = calculateDistance(startX,startY,x,y);
                     if (distance <= radius) {
-                        if(checkCoordinates(x,y,infoResponse,worldDataResponse)){
+                        if(checkCoordinates(x,y,infoResponse,worldDataResponse,build)){
                             System.out.println("Point: (" + x + ", " + y + ")");
                             build.add(createBase(x,y));
                             money--;
@@ -71,12 +71,21 @@ public class BuildScript {
       //  printGrid(bases);
         return build;
     }
-    public static boolean checkCoordinates(int x, int y, InfoResponse infoResponse,WorldDataResponse worldDataResponse) {
+    public static boolean checkCoordinates(int x, int y, InfoResponse infoResponse,WorldDataResponse worldDataResponse,
+                                           List<Build> currentBuild) {
         if (x < 0 || y < 0) {
             return false;
         }
         double distance = 1000;
         double newDistance = 1000;
+        if (!currentBuild.isEmpty()){
+            for (Build build:
+                 currentBuild) {
+                if(build.getX() == x && build.getY() == y){
+                    return false;
+                }
+            }
+        }
         for (Base base : infoResponse.getBase()) {
             if (base.x == x && base.y == y) {
                 return false;
