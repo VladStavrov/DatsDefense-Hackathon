@@ -114,15 +114,18 @@ public class ShootScript {
 
             for (Map.Entry<String, List<Zombie>> entry : sortedZombiesByLocation) {
                 List<Zombie> zombiesInLocation = entry.getValue();
-                int targetX = zombiesInLocation.get(0).getX();
-                int targetY = zombiesInLocation.get(0).getY();
-                double distance = calculateDistance(baseX, baseY, targetX, targetY);
+                if(!zombiesInLocation.isEmpty()){
+                    int targetX = zombiesInLocation.get(0).getX();
+                    int targetY = zombiesInLocation.get(0).getY();
+                    double distance = calculateDistance(baseX, baseY, targetX, targetY);
 
-                if (distance <= attackRadius) {
-                    shootZombies(attacks, baseBlock, attackPower, zombiesInLocation, remainingZombies);
-                    baseBlocksToRemove.add(baseBlock);  // Добавить блок базы для удаления после атаки
-                    break;
+                    if (distance <= attackRadius) {
+                        shootZombies(attacks, baseBlock, attackPower, zombiesInLocation, remainingZombies);
+                        baseBlocksToRemove.add(baseBlock);  // Добавить блок базы для удаления после атаки
+                        break;
+                    }
                 }
+
             }
         }
 

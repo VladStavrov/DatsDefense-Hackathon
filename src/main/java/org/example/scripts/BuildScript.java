@@ -37,7 +37,7 @@ public class BuildScript {
         }
 
         int radius;
-        int distanceEnemy = 5, distanceSpotsZombie = 4, distanceZombie = 2;
+        int distanceEnemy = 5, distanceSpotsZombie = 1, distanceZombie = 1;
 
         // PriorityQueue для мест размещения с учетом их безопасности и стратегической ценности
         PriorityQueue<Build> priorityQueue = new PriorityQueue<>(new BuildDistanceComparator(startX, startY));
@@ -45,14 +45,7 @@ public class BuildScript {
         while (firstPartMoney > 0 && distanceEnemy != 1) {
             radius = 0;
             distanceEnemy--;
-            distanceSpotsZombie--;
-            if (distanceSpotsZombie <= 0) {
-                distanceSpotsZombie = 0;
-            }
-            distanceZombie--;
-            if (distanceZombie <= 0) {
-                distanceZombie = 0;
-            }
+
 
             while (firstPartMoney > 0 && radius <= 200) {
                 radius++;
@@ -88,8 +81,8 @@ public class BuildScript {
 
     // Метод для фильтрации координат
     public static boolean shouldSkipCoordinates(int x, int y) {
-        return false;
-        //return (x % 2 == 0) && (y % 2 == 0);
+        //return false;
+        return (x % 2 == 0) && (y % 2 == 0);
     }
 
     public static boolean checkCoordinates(int x, int y, InfoResponse infoResponse, WorldDataResponse worldDataResponse, List<Build> currentBuild, int distanceEnemy, int distanceSpotsZombie, int distanceZombie) {

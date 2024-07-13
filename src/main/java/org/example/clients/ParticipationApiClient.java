@@ -13,7 +13,7 @@ import java.io.IOException;
 
 public class ParticipationApiClient {
 
-    private static final String BASE_URL = "https://games.datsteam.dev/play/zombidef/participate";
+    private static final String BASE_URL = "https://games-test.datsteam.dev/play/zombidef/participate";
     private static final String API_KEY = "6684220d3195e6684220d31962";
     private static final String AUTH_HEADER = "X-Auth-Token";
 
