@@ -6,90 +6,81 @@ import org.example.models.mapInfo.Zombie;
 import org.example.models.play.Attack;
 import org.example.models.play.Target;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.logging.Logger;
 
 public class ShootScript {
 
+    private static final Logger logger = Logger.getLogger(ShootScript.class.getName());
+
     public static List<Attack> shoot(InfoResponse infoResponse) {
         List<Attack> attacks = new ArrayList<>();
-
-        // Логирование начала процесса
-        System.out.println("Начало процесса атаки");
+        logger.info("Начало процесса атаки");
 
         // Найти центральный блок базы (head)
-        Base centerBaseBlock = null;
-        for (Base baseBlock : infoResponse.getBase()) {
-            if (baseBlock.isHead) {
-                centerBaseBlock = baseBlock;
-                break;
-            }
-        }
-
+        Base centerBaseBlock = findCenterBaseBlock(Arrays.asList(infoResponse.getBase()));
         if (centerBaseBlock == null) {
-            System.out.println("Центральный блок базы не найден");
+            logger.warning("Центральный блок базы не найден");
             return attacks;
         }
 
         int centerX = centerBaseBlock.getX();
         int centerY = centerBaseBlock.getY();
 
+        // Карта зомби по их координатам
+        Map<String, List<Zombie>> zombiesByLocation = mapZombiesByLocation(Arrays.asList(infoResponse.getZombies()));
+
+        // Сортировка зомби по расстоянию от центра
+        List<Map.Entry<String, List<Zombie>>> sortedZombiesByLocation = sortZombiesByDistance(centerX, centerY, zombiesByLocation);
+
         for (Base baseBlock : infoResponse.getBase()) {
-            // Определение радиуса атаки
-            int attackRadius = baseBlock.range;
-            int attackPower = baseBlock.attack;
+            processBaseBlock(attacks, baseBlock, centerX, centerY, sortedZombiesByLocation);
+        }
 
-            System.out.println("Блок базы ID: " + baseBlock.id + " имеет радиус атаки: " + attackRadius + " и силу атаки: " + attackPower);
+        logger.info("Процесс атаки завершен");
+        return attacks;
+    }
 
-            // Карта зомби по их координатам
-            Map<String, List<Zombie>> zombiesByLocation = new HashMap<>();
-            for (Zombie zombie : infoResponse.getZombies()) {
-                double distance = calculateDistance(centerX, centerY, zombie.getX(), zombie.getY());
+    private static Base findCenterBaseBlock(List<Base> baseBlocks) {
+        return baseBlocks.stream().filter(Base::isHead).findFirst().orElse(null);
+    }
 
-                if (distance <= attackRadius) {
-                    String key = zombie.getX() + "," + zombie.getY();
-                    zombiesByLocation.computeIfAbsent(key, k -> new ArrayList<>()).add(zombie);
-                    System.out.println("Зомби ID: " + zombie.id + " в радиусе атаки. Расстояние: " + distance);
-                }
-            }
+    private static Map<String, List<Zombie>> mapZombiesByLocation(List<Zombie> zombies) {
+        return zombies.stream().collect(Collectors.groupingBy(zombie -> zombie.getX() + "," + zombie.getY()));
+    }
 
-            // Обработка атак для каждой уникальной клетки с зомби
-            for (Map.Entry<String, List<Zombie>> entry : zombiesByLocation.entrySet()) {
-                List<Zombie> zombiesInLocation = entry.getValue();
+    private static List<Map.Entry<String, List<Zombie>>> sortZombiesByDistance(int centerX, int centerY, Map<String, List<Zombie>> zombiesByLocation) {
+        return zombiesByLocation.entrySet().stream().sorted(Comparator.comparingDouble(entry -> calculateDistance(centerX, centerY, entry.getValue().get(0).getX(), entry.getValue().get(0).getY()))).collect(Collectors.toList());
+    }
 
-                // Сортировка зомби по здоровью
-                zombiesInLocation.sort(Comparator.comparingInt(z -> z.health));
+    private static void processBaseBlock(List<Attack> attacks, Base baseBlock, int centerX, int centerY, List<Map.Entry<String, List<Zombie>>> sortedZombiesByLocation) {
+        int attackRadius = baseBlock.getRange();
+        int attackPower = baseBlock.getAttack();
 
-                while (!zombiesInLocation.isEmpty()) {
-                    boolean allZombiesKilled = true;
+        logger.info("Блок базы ID: " + baseBlock.getId() + " имеет радиус атаки: " + attackRadius + " и силу атаки: " + attackPower);
 
-                    for (Zombie zombie : zombiesInLocation) {
-                        if (zombie.health > 0) {
-                            allZombiesKilled = false;
-                            break;
-                        }
-                    }
+        boolean attacked = false;
 
-                    if (allZombiesKilled) {
-                        break;
-                    }
+        for (Map.Entry<String, List<Zombie>> entry : sortedZombiesByLocation) {
+            List<Zombie> zombiesInLocation = entry.getValue();
+            double distance = calculateDistance(centerX, centerY, zombiesInLocation.get(0).getX(), zombiesInLocation.get(0).getY());
 
-                    shootZombies(attacks, baseBlock, attackPower, zombiesInLocation);
-                }
+            if (distance <= attackRadius) {
+                shootZombies(attacks, baseBlock, attackPower, zombiesInLocation);
+                attacked = true;
+                break;
             }
         }
 
-        System.out.println("Процесс атаки завершен");
-
-        return attacks;
+        if (!attacked) {
+            logger.info("Блок базы ID: " + baseBlock.getId() + " не имеет целей в радиусе атаки.");
+        }
     }
 
     private static void shootZombies(List<Attack> attacks, Base baseBlock, int attackPower, List<Zombie> zombiesInLocation) {
         Attack attack = new Attack();
-        attack.setBlockId(baseBlock.id);
+        attack.setBlockId(baseBlock.getId());
         Target target = new Target();
         target.setX(zombiesInLocation.get(0).getX());
         target.setY(zombiesInLocation.get(0).getY());
@@ -97,11 +88,11 @@ public class ShootScript {
         attacks.add(attack);
 
         for (Zombie zombie : zombiesInLocation) {
-            zombie.health -= attackPower;
-            if (zombie.health <= 0) {
-                System.out.println("Зомби ID: " + zombie.id + " убит");
+            zombie.setHealth(zombie.getHealth() - attackPower);
+            if (zombie.getHealth() <= 0) {
+                logger.info("Зомби ID: " + zombie.getId() + " убит");
             } else {
-                System.out.println("Зомби ID: " + zombie.id + " ранен, оставшееся здоровье: " + zombie.health);
+                logger.info("Зомби ID: " + zombie.getId() + " ранен, оставшееся здоровье: " + zombie.getHealth());
             }
         }
     }
