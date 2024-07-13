@@ -37,44 +37,48 @@ public class ShootScript {
         int centerY = centerBaseBlock.getY();
 
         // Обработка зомби, если они существуют
-        Map<String, List<Zombie>> zombiesByLocation = new HashMap<>();
-        if (infoResponse.getZombies() != null) {
-            zombiesByLocation = mapZombiesByLocation(Arrays.asList(infoResponse.getZombies()));
-        }
+        Map<String, List<Zombie>> zombiesByLocation = Optional.ofNullable(infoResponse.getZombies())
+                .map(Arrays::asList)
+                .map(ShootScript::mapZombiesByLocation)
+                .orElseGet(HashMap::new);
 
         // Сортировка зомби по расстоянию от центра и уровню угрозы
-        List<Map.Entry<String, List<Zombie>>> sortedZombiesByLocation = new ArrayList<>();
-        if (!zombiesByLocation.isEmpty()) {
-            sortedZombiesByLocation = sortZombiesByDistanceAndThreat(centerX, centerY, zombiesByLocation);
-        }
+        List<Map.Entry<String, List<Zombie>>> sortedZombiesByLocation = zombiesByLocation.entrySet().stream()
+                .sorted(Comparator.<Map.Entry<String, List<Zombie>>>comparingDouble(entry -> calculateDistance(centerX, centerY, entry.getValue().get(0).getX(), entry.getValue().get(0).getY()))
+                        .thenComparing(entry -> getZombieThreatLevel(entry.getValue().get(0))))
+                .collect(Collectors.toList());
 
         List<Base> remainingBaseBlocks = new ArrayList<>(Arrays.asList(infoResponse.getBase()));
-        List<EnemyBlock> highPriorityEnemyBlocks = new ArrayList<>();
-        if (infoResponse.getEnemyBlocks() != null) {
-            highPriorityEnemyBlocks = findHighPriorityEnemyBlocks(Arrays.asList(infoResponse.getEnemyBlocks()));
-        }
-        List<EnemyBlock> remainingEnemyBlocks = infoResponse.getEnemyBlocks() != null ? new ArrayList<>(Arrays.asList(infoResponse.getEnemyBlocks())) : new ArrayList<>();
+        List<EnemyBlock> highPriorityEnemyBlocks = Optional.ofNullable(infoResponse.getEnemyBlocks())
+                .map(Arrays::asList)
+                .map(ShootScript::findHighPriorityEnemyBlocks)
+                .orElseGet(ArrayList::new);
+
+        List<EnemyBlock> remainingEnemyBlocks = Optional.ofNullable(infoResponse.getEnemyBlocks())
+                .map(Arrays::asList)
+                .map(ArrayList::new)
+                .orElseGet(ArrayList::new);
 
         int highPriorityAttacks = 0;
         int totalEnemyBlockAttacks = 0;
 
         // Выполнение атак по EnemyBlock с атакой 40
-        if (highPriorityEnemyBlocks != null) {
+        if (!highPriorityEnemyBlocks.isEmpty()) {
             highPriorityAttacks = executeHighPriorityEnemyBlockAttacks(attacks, remainingBaseBlocks, highPriorityEnemyBlocks);
             remainingEnemyBlocks.removeAll(highPriorityEnemyBlocks);
         }
 
         // Выполнение атак по зомби
-        if (sortedZombiesByLocation != null) {
+        if (!sortedZombiesByLocation.isEmpty()) {
             List<Zombie> remainingZombies = new ArrayList<>(Arrays.asList(infoResponse.getZombies()));
             executeZombieAttacks(attacks, remainingBaseBlocks, sortedZombiesByLocation, remainingZombies);
 
             // Обновить массив зомби после атак
-            List<Map.Entry<String, List<Zombie>>> updatedZombiesByLocation = new ArrayList<>(mapZombiesByLocation(remainingZombies).entrySet());
+            Map<String, List<Zombie>> updatedZombiesByLocation = mapZombiesByLocation(remainingZombies);
 
             // Выполнение атак по обычным EnemyBlock и оставшимся зомби
             if (!remainingEnemyBlocks.isEmpty()) {
-                totalEnemyBlockAttacks = executeEnemyBlockAttacks(attacks, remainingBaseBlocks, remainingEnemyBlocks, updatedZombiesByLocation);
+                totalEnemyBlockAttacks = executeEnemyBlockAttacks(attacks, remainingBaseBlocks, remainingEnemyBlocks, new ArrayList<>(updatedZombiesByLocation.entrySet()));
             }
 
             infoResponse.setZombies(remainingZombies.toArray(new Zombie[0]));
@@ -90,21 +94,15 @@ public class ShootScript {
     }
 
     private static Base findCenterBaseBlock(Base[] baseBlocks) {
-        for (Base base : baseBlocks) {
-            if (base.isHead()) {
-                return base;
-            }
-        }
-        logger.warning("Центральный блок базы не найден");
-        return null;
+        return Arrays.stream(baseBlocks)
+                .filter(Base::isHead)
+                .findFirst()
+                .orElse(null);
     }
 
     private static Map<String, List<Zombie>> mapZombiesByLocation(List<Zombie> zombies) {
-        return zombies.stream().collect(Collectors.groupingBy(zombie -> zombie.getX() + "," + zombie.getY()));
-    }
-
-    private static List<Map.Entry<String, List<Zombie>>> sortZombiesByDistanceAndThreat(int centerX, int centerY, Map<String, List<Zombie>> zombiesByLocation) {
-        return zombiesByLocation.entrySet().stream().sorted(Comparator.<Map.Entry<String, List<Zombie>>>comparingDouble(entry -> calculateDistance(centerX, centerY, entry.getValue().get(0).getX(), entry.getValue().get(0).getY())).thenComparing(entry -> getZombieThreatLevel(entry.getValue().get(0)))).collect(Collectors.toList());
+        return zombies.stream()
+                .collect(Collectors.groupingBy(zombie -> zombie.getX() + "," + zombie.getY()));
     }
 
     private static void executeZombieAttacks(List<Attack> attacks, List<Base> baseBlocks, List<Map.Entry<String, List<Zombie>>> sortedZombiesByLocation, List<Zombie> remainingZombies) {
@@ -203,7 +201,9 @@ public class ShootScript {
     }
 
     private static List<EnemyBlock> findHighPriorityEnemyBlocks(List<EnemyBlock> enemyBlocks) {
-        return enemyBlocks.stream().filter(enemyBlock -> enemyBlock.getAttack() == 40).collect(Collectors.toList());
+        return enemyBlocks.stream()
+                .filter(enemyBlock -> enemyBlock.getAttack() == 40)
+                .collect(Collectors.toList());
     }
 
     private static void shootZombies(List<Attack> attacks, Base baseBlock, int attackPower, List<Zombie> zombiesInLocation, List<Zombie> remainingZombies) {
