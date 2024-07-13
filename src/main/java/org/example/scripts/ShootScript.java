@@ -1,21 +1,36 @@
 package org.example.scripts;
 
-import org.example.models.mapInfo.Base;
-import org.example.models.mapInfo.EnemyBlock;
-import org.example.models.mapInfo.InfoResponse;
-import org.example.models.mapInfo.Zombie;
+import org.example.models.mapInfo.*;
 import org.example.models.play.Attack;
 import org.example.models.play.Target;
 
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class ShootScript {
 
     private static final Logger logger = Logger.getLogger(ShootScript.class.getName());
 
-    public static List<Attack> shoot(InfoResponse infoResponse) {
+    public static class AttackResponse {
+        private List<Attack> attacks;
+        private InfoResponse updatedInfoResponse;
+
+        public AttackResponse(List<Attack> attacks, InfoResponse updatedInfoResponse) {
+            this.attacks = attacks;
+            this.updatedInfoResponse = updatedInfoResponse;
+        }
+
+        public List<Attack> getAttacks() {
+            return attacks;
+        }
+
+        public InfoResponse getUpdatedInfoResponse() {
+            return updatedInfoResponse;
+        }
+    }
+
+    public static AttackResponse shoot(InfoResponse infoResponse) {
         List<Attack> attacks = new ArrayList<>();
         logger.info("Начало процесса атаки");
 
@@ -24,7 +39,7 @@ public class ShootScript {
 
         if (centerBaseBlock == null) {
             logger.warning("Центральный блок базы не найден, атака невозможна");
-            return attacks;
+            return new AttackResponse(attacks, infoResponse);
         }
 
         int centerX = centerBaseBlock.getX();
@@ -63,8 +78,12 @@ public class ShootScript {
 
         logAttackSummary(attacks, remainingZombies, infoResponse, highPriorityAttacks, totalEnemyBlockAttacks);
 
+        // Обновление InfoResponse
+        infoResponse.setZombies(remainingZombies.toArray(new Zombie[0]));
+        infoResponse.setEnemyBlocks(remainingEnemyBlocks.toArray(new EnemyBlock[0]));
+
         logger.info("Процесс атаки завершен");
-        return attacks;
+        return new AttackResponse(attacks, infoResponse);
     }
 
     private static Base findCenterBaseBlock(Base[] baseBlocks) {
@@ -232,7 +251,6 @@ public class ShootScript {
         int totalAttacks = attacks.size();
         int normalEnemyBlockAttacks = totalEnemyBlockAttacks - highPriorityAttacks;
 
-        logger.info(String.format("Итог атаки: всего атак: %d, зомби убито: %d, зомби ранено: %d, атаковано EnemyBlock: %d (приоритетных: %d, обычных: %d)",
-                totalAttacks, zombiesKilled, zombiesWounded, totalEnemyBlockAttacks, highPriorityAttacks, normalEnemyBlockAttacks));
+        logger.info(String.format("Итог атаки: всего атак: %d, зомби убито: %d, зомби ранено: %d, атаковано EnemyBlock: %d (приоритетных: %d, обычных: %d)", totalAttacks, zombiesKilled, zombiesWounded, totalEnemyBlockAttacks, highPriorityAttacks, normalEnemyBlockAttacks));
     }
 }

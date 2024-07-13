@@ -5,6 +5,7 @@ import java.util.List;
 import org.example.models.mapInfo.InfoResponse;
 import org.example.models.play.*;
 import org.example.models.worldInfo.WorldDataResponse;
+import org.example.scripts.ShootScript.AttackResponse;
 
 import static org.example.MainCommands.*;
 import static org.example.scripts.BuildScript.build;
@@ -39,9 +40,11 @@ public class AutoPlayScript {
 
                 PlayRequest playRequest = new PlayRequest();
                 try {
-                    List<Attack> attack = shoot(infoResponse);
-                    List<Build> builds = build(infoResponse, worldDataResponse);
-                    //MoveBase moveBase = moveBase(infoResponse, worldDataResponse);
+                    AttackResponse attackResponse = shoot(infoResponse);
+                    List<Attack> attack = attackResponse.getAttacks();
+                    InfoResponse updatedInfoResponse = attackResponse.getUpdatedInfoResponse();
+                    List<Build> builds = build(updatedInfoResponse, worldDataResponse);
+                    //MoveBase moveBase = moveBase(updatedInfoResponse, worldDataResponse);
 
                     playRequest.setAttack(attack);
                     playRequest.setBuild(builds);
