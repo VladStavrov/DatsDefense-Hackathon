@@ -45,8 +45,8 @@ public class AutoPlayScript {
 
                 PlayRequest playRequest = new PlayRequest();
                 try {
-                    //AttackResponse attackResponse = shoot(infoResponse);
-                    GreedyShootScript.AttackResponse attackResponse = greedyShoot(infoResponse);
+                    AttackResponse attackResponse = shoot(infoResponse);
+                    //GreedyShootScript.AttackResponse attackResponse = greedyShoot(infoResponse);
 
                     List<Attack> attack = attackResponse.attacks();
                     InfoResponse updatedInfoResponse = attackResponse.updatedInfoResponse();
