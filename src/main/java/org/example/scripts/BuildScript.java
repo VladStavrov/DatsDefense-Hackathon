@@ -39,7 +39,7 @@ public class BuildScript {
         }
         int radius = 0;
 
-        while(money>0 || radius<=200){
+        while(money>0 && radius<=200){
             radius++;
             int x,y;
             int maxX = startX + radius;
