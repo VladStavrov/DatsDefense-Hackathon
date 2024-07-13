@@ -37,42 +37,43 @@ public class BuildScript {
         if (startX == -1 || startY == -1) {
             throw new IllegalArgumentException("No head base found");
         }
-        int radius = 0;
-
-        while(money>0 && radius<=200){
-            radius++;
-            int x,y;
-            int maxX = startX + radius;
-            int maxY = startY + radius;
-            for (x=startX-radius;x<=maxX; x++) {
-                for (y=startY-radius;y<=maxY; y++) {
-                    double distance = calculateDistance(startX,startY,x,y);
-                    if (distance <= radius) {
-                        if(checkCoordinates(x,y,infoResponse,worldDataResponse,build)){
-                            System.out.println("Point: (" + x + ", " + y + ")");
-                            build.add(createBase(x,y));
-                            money--;
-
-                            // Add new Base to bases array
-                            //Base newBase = new Base(0, 0, "new" + money, false, new LastAttack(), 77, x, y);
-                            //bases = addBaseToArray(bases, newBase);
-
-                            if (money<=0){
-                                //printGrid(bases);
-                                return build;
+        int radius;
+        int distanceEnemy = 5, distanceSpotsZombie = 4, distanceZombie = 2;
+        while(money > 0 && distanceZombie!=0){
+            radius = 0;
+            distanceEnemy--;
+            distanceSpotsZombie--;
+            distanceZombie--;
+            while(money > 0 && radius<=200){
+                radius++;
+                int x,y;
+                int maxX = startX + radius;
+                int maxY = startY + radius;
+                for (x=startX-radius;x<=maxX; x++) {
+                    for (y=startY-radius;y<=maxY; y++) {
+                        double distance = calculateDistance(startX,startY,x,y);
+                        if (distance <= radius) {
+                            if(checkCoordinates(x,y,infoResponse,worldDataResponse,build,distanceEnemy,distanceSpotsZombie,distanceZombie)){
+                                System.out.println("Point: (" + x + ", " + y + ")");
+                                build.add(createBase(x,y));
+                                money--;
+                                if (money<=0){
+                                    return build;
+                                }
                             }
                         }
                     }
                 }
             }
-
         }
+
 
       //  printGrid(bases);
         return build;
     }
     public static boolean checkCoordinates(int x, int y, InfoResponse infoResponse,WorldDataResponse worldDataResponse,
-                                           List<Build> currentBuild) {
+                                           List<Build> currentBuild, int distanceEnemy, int distanceSpotsZombie,
+                                           int distanceZombie) {
         if (x < 0 || y < 0) {
             return false;
         }
@@ -99,28 +100,39 @@ public class BuildScript {
         if(distance > 1){
             return false;
         }
+
+        //Zombie
         if (infoResponse != null && infoResponse.getZombies() != null) {
             for (Zombie zombie : infoResponse.getZombies()) {
                 if (zombie.x == x && zombie.y == y) {
                     return false;
                 }
-            }
-        }
-
-        if (infoResponse != null && infoResponse.getEnemyBlocks() != null) {
-            for (EnemyBlock enemyBlock : infoResponse.getEnemyBlocks()) {
-                int enemyX = enemyBlock.getX();
-                int enemyY = enemyBlock.getY();
-                if (Math.abs(enemyX - x) <= 1 && Math.abs(enemyY - y) <= 1) {
+                if (Math.sqrt(Math.pow(zombie.x - x, 2) + Math.pow(zombie.y - y, 2))<=distanceZombie) {
                     return false;
                 }
             }
         }
 
+        //Enemy
+        if (infoResponse != null && infoResponse.getEnemyBlocks() != null) {
+            for (EnemyBlock enemyBlock : infoResponse.getEnemyBlocks()) {
+                int enemyX = enemyBlock.getX();
+                int enemyY = enemyBlock.getY();
+                if (Math.sqrt(Math.pow(enemyX - x, 2) + Math.pow(enemyY - y, 2))<=distanceEnemy) {
+                    return false;
+                }
+            }
+        }
+
+        //Spots
         if (worldDataResponse != null && worldDataResponse.getZpots() != null) {
             for (ZPot zpot : worldDataResponse.getZpots()) {
                 int zpotX = zpot.getX();
                 int zpotY = zpot.getY();
+                if (Math.sqrt(Math.pow(zpotX - x, 2) + Math.pow(zpotY - y, 2))<=distanceSpotsZombie) {
+                    return false;
+                }
+
                 if (zpotX == x && zpotY == y) {
                     return false;
                 }
