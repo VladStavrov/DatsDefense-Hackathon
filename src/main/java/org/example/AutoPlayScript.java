@@ -6,11 +6,13 @@ import org.example.models.mapInfo.Base;
 import org.example.models.mapInfo.InfoResponse;
 import org.example.models.play.*;
 import org.example.models.worldInfo.WorldDataResponse;
+import org.example.scripts.GreedyShootScript;
 import org.example.scripts.ShootScript.AttackResponse;
 import org.example.scripts.MoveScript;
 
 import static org.example.MainCommands.*;
 import static org.example.scripts.BuildScript.build;
+import static org.example.scripts.GreedyShootScript.greedyShoot;
 import static org.example.scripts.ShootScript.shoot;
 
 
@@ -43,7 +45,9 @@ public class AutoPlayScript {
 
                 PlayRequest playRequest = new PlayRequest();
                 try {
-                    AttackResponse attackResponse = shoot(infoResponse);
+                    //AttackResponse attackResponse = shoot(infoResponse);
+                    GreedyShootScript.AttackResponse attackResponse = greedyShoot(infoResponse);
+
                     List<Attack> attack = attackResponse.attacks();
                     InfoResponse updatedInfoResponse = attackResponse.updatedInfoResponse();
                     List<Build> builds = build(updatedInfoResponse, worldDataResponse);
