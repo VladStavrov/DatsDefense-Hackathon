@@ -79,8 +79,6 @@ public class ShootScript {
             executeZombieAttacks(attacks, remainingBaseBlocks, sortedZombiesByLocation, remainingZombies);
 
             // Обновить массив зомби после атак
-            Map<String, List<Zombie>> updatedZombiesByLocation = mapZombiesByLocation(remainingZombies);
-
             infoResponse.setZombies(remainingZombies.toArray(new Zombie[0]));
         }
 
@@ -217,10 +215,15 @@ public class ShootScript {
         attack.setTarget(target);
         attacks.add(attack);
 
-        for (Zombie zombie : zombiesInLocation) {
-            zombie.setHealth(zombie.getHealth() - attackPower);
-            if (zombie.getHealth() <= 0) {
-                remainingZombies.remove(zombie);
+        Iterator<Zombie> iterator = zombiesInLocation.iterator();
+        while (iterator.hasNext()) {
+            Zombie zombie = iterator.next();
+            if (zombie.getHealth() > 0) {  // Проверка на живого зомби
+                zombie.setHealth(zombie.getHealth() - attackPower);
+                if (zombie.getHealth() <= 0) {
+                    remainingZombies.remove(zombie);
+                    iterator.remove();  // Удаляем зомби из текущей локации
+                }
             }
         }
     }
