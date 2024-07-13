@@ -4,14 +4,17 @@ import org.example.models.mapInfo.*;
 import org.example.models.play.MoveBase;
 
 import java.util.*;
+import java.util.logging.Logger;
 
 public class MoveScript {
+
+    private static final Logger logger = Logger.getLogger(MoveScript.class.getName());
 
     // Метод для нахождения самой безопасной клетки базы
     public static Base findSafestBaseCell(InfoResponse infoResponse, int currentX, int currentY) {
         Base[] baseCells = infoResponse.getBase();
-        List<EnemyBlock> enemyBlocks = infoResponse.getEnemyBlocks() != null ? Arrays.asList(infoResponse.getEnemyBlocks()) : Collections.emptyList();
-        List<Zombie> zombies = infoResponse.getZombies() != null ? Arrays.asList(infoResponse.getZombies()) : Collections.emptyList();
+        List<EnemyBlock> enemyBlocks = Optional.ofNullable(infoResponse.getEnemyBlocks()).map(Arrays::asList).orElse(Collections.emptyList());
+        List<Zombie> zombies = Optional.ofNullable(infoResponse.getZombies()).map(Arrays::asList).orElse(Collections.emptyList());
 
         Map<Base, Integer> dangerMap = new HashMap<>();
 
@@ -41,6 +44,7 @@ public class MoveScript {
 
         // Поиск клеток с наименьшим уровнем угрозы
         int minDangerLevel = Collections.min(dangerMap.values());
+        int maxDangerLevel = Collections.max(dangerMap.values());
         List<Base> safestCells = new ArrayList<>();
         for (Map.Entry<Base, Integer> entry : dangerMap.entrySet()) {
             if (entry.getValue() == minDangerLevel) {
@@ -48,8 +52,20 @@ public class MoveScript {
             }
         }
 
+        Base currentBaseCell = Arrays.stream(baseCells).filter(base -> base.getX() == currentX && base.getY() == currentY).findFirst().orElseThrow(() -> new IllegalArgumentException("Current position is not part of the base"));
+
+        // Логирование информации
+        logger.info(String.format("Максимальный уровень опасности: %d", maxDangerLevel));
+        logger.info(String.format("Минимальный уровень опасности: %d", minDangerLevel));
+        logger.info(String.format("Начальная клетка: (%d, %d) с уровнем опасности: %d", currentX, currentY, dangerMap.get(currentBaseCell)));
+
         // Найти самую близкую безопасную клетку к текущей позиции
-        return Collections.min(safestCells, Comparator.comparingDouble(cell -> calculateDistance(currentX, currentY, cell.getX(), cell.getY())));
+        Base safestBaseCell = Collections.min(safestCells, Comparator.comparingDouble(cell -> calculateDistance(currentX, currentY, cell.getX(), cell.getY())));
+
+        // Логирование информации о безопасной клетке
+        logger.info(String.format("Перемещение в клетку: (%d, %d) с уровнем опасности: %d", safestBaseCell.getX(), safestBaseCell.getY(), dangerMap.get(safestBaseCell)));
+
+        return safestBaseCell;
     }
 
     // Метод для вычисления зоны атаки зомби
