@@ -104,10 +104,7 @@ public class ShootScript {
     }
 
     private static List<Map.Entry<String, List<Zombie>>> sortZombiesByDistanceAndThreat(int centerX, int centerY, Map<String, List<Zombie>> zombiesByLocation) {
-        return zombiesByLocation.entrySet().stream()
-                .sorted(Comparator.<Map.Entry<String, List<Zombie>>>comparingDouble(entry -> calculateDistance(centerX, centerY, entry.getValue().get(0).getX(), entry.getValue().get(0).getY()))
-                        .thenComparing(entry -> getZombieThreatLevel(entry.getValue().get(0))))
-                .collect(Collectors.toList());
+        return zombiesByLocation.entrySet().stream().sorted(Comparator.<Map.Entry<String, List<Zombie>>>comparingDouble(entry -> calculateDistance(centerX, centerY, entry.getValue().get(0).getX(), entry.getValue().get(0).getY())).thenComparing(entry -> getZombieThreatLevel(entry.getValue().get(0)))).collect(Collectors.toList());
     }
 
     private static void executeZombieAttacks(List<Attack> attacks, List<Base> baseBlocks, List<Map.Entry<String, List<Zombie>>> sortedZombiesByLocation, List<Zombie> remainingZombies) {
@@ -221,11 +218,8 @@ public class ShootScript {
         attacks.add(attack);
 
         for (Zombie zombie : zombiesInLocation) {
-            int initialHealth = zombie.getHealth();
             zombie.setHealth(zombie.getHealth() - attackPower);
-            int finalHealth = zombie.getHealth();
-            logger.info(String.format("Base block %d attacked zombie %d at (%d, %d): health %d -> %d", baseBlock.getId(), zombie.getId(), targetX, targetY, initialHealth, finalHealth));
-            if (finalHealth <= 0) {
+            if (zombie.getHealth() <= 0) {
                 remainingZombies.remove(zombie);
             }
         }

@@ -2,6 +2,7 @@ package org.example;
 
 import java.util.List;
 
+import org.example.models.mapInfo.Base;
 import org.example.models.mapInfo.InfoResponse;
 import org.example.models.play.*;
 import org.example.models.worldInfo.WorldDataResponse;
@@ -11,6 +12,7 @@ import org.example.scripts.MoveScript;
 import static org.example.MainCommands.*;
 import static org.example.scripts.BuildScript.build;
 import static org.example.scripts.ShootScript.shoot;
+
 
 public class AutoPlayScript {
 
@@ -45,7 +47,14 @@ public class AutoPlayScript {
                     List<Attack> attack = attackResponse.attacks();
                     InfoResponse updatedInfoResponse = attackResponse.updatedInfoResponse();
                     List<Build> builds = build(updatedInfoResponse, worldDataResponse);
-                    MoveBase moveBase = MoveScript.moveBaseToSafestCell(updatedInfoResponse);
+
+                    // Получение текущих координат базы
+                    Base centerBaseBlock = findCenterBaseBlock(infoResponse.getBase());
+                    assert centerBaseBlock != null;
+                    int currentX = centerBaseBlock.getX();
+                    int currentY = centerBaseBlock.getY();
+
+                    MoveBase moveBase = MoveScript.moveBaseToSafestCell(updatedInfoResponse, currentX, currentY);
 
                     playRequest.setAttack(attack);
                     playRequest.setBuild(builds);
@@ -76,5 +85,15 @@ public class AutoPlayScript {
                 Thread.sleep(1000);
             }
         }
+    }
+
+    // Метод для нахождения центрального блока базы
+    private static Base findCenterBaseBlock(Base[] baseBlocks) {
+        for (Base base : baseBlocks) {
+            if (base.isHead()) {
+                return base;
+            }
+        }
+        return null;
     }
 }

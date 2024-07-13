@@ -8,7 +8,7 @@ import java.util.*;
 public class MoveScript {
 
     // Метод для нахождения самой безопасной клетки базы
-    public static Base findSafestBaseCell(InfoResponse infoResponse) {
+    public static Base findSafestBaseCell(InfoResponse infoResponse, int currentX, int currentY) {
         Base[] baseCells = infoResponse.getBase();
         List<EnemyBlock> enemyBlocks = infoResponse.getEnemyBlocks() != null ? Arrays.asList(infoResponse.getEnemyBlocks()) : Collections.emptyList();
         List<Zombie> zombies = infoResponse.getZombies() != null ? Arrays.asList(infoResponse.getZombies()) : Collections.emptyList();
@@ -39,8 +39,17 @@ public class MoveScript {
             dangerMap.put(baseCell, dangerLevel);
         }
 
-        // Поиск клетки с наименьшим уровнем угрозы
-        return Collections.min(dangerMap.entrySet(), Map.Entry.comparingByValue()).getKey();
+        // Поиск клеток с наименьшим уровнем угрозы
+        int minDangerLevel = Collections.min(dangerMap.values());
+        List<Base> safestCells = new ArrayList<>();
+        for (Map.Entry<Base, Integer> entry : dangerMap.entrySet()) {
+            if (entry.getValue() == minDangerLevel) {
+                safestCells.add(entry.getKey());
+            }
+        }
+
+        // Найти самую близкую безопасную клетку к текущей позиции
+        return Collections.min(safestCells, Comparator.comparingDouble(cell -> calculateDistance(currentX, currentY, cell.getX(), cell.getY())));
     }
 
     // Метод для вычисления зоны атаки зомби
@@ -111,8 +120,8 @@ public class MoveScript {
     }
 
     // Метод для перемещения базы в самую безопасную клетку
-    public static MoveBase moveBaseToSafestCell(InfoResponse infoResponse) {
-        Base safestBaseCell = findSafestBaseCell(infoResponse);
+    public static MoveBase moveBaseToSafestCell(InfoResponse infoResponse, int currentX, int currentY) {
+        Base safestBaseCell = findSafestBaseCell(infoResponse, currentX, currentY);
         MoveBase moveBase = new MoveBase();
         moveBase.setX(safestBaseCell.getX());
         moveBase.setY(safestBaseCell.getY());
