@@ -38,7 +38,11 @@ public class ShootScript {
 
         // Выполнение атак по EnemyBlock с атакой 40
         List<Base> remainingBaseBlocks = new ArrayList<>(Arrays.asList(infoResponse.getBase()));
-        executeHighPriorityEnemyBlockAttacks(attacks, remainingBaseBlocks, Arrays.asList(infoResponse.getEnemyBlocks()));
+        if (infoResponse.getEnemyBlocks().length > 0) {
+            executeHighPriorityEnemyBlockAttacks(attacks, remainingBaseBlocks, Arrays.asList(infoResponse.getEnemyBlocks()));
+        } else {
+            logger.info("Нет доступных EnemyBlock для атаки.");
+        }
 
         // Выполнение атак по зомби
         List<Zombie> remainingZombies = new ArrayList<>(Arrays.asList(infoResponse.getZombies()));
@@ -48,7 +52,11 @@ public class ShootScript {
         List<Map.Entry<String, List<Zombie>>> updatedZombiesByLocation = new ArrayList<>(mapZombiesByLocation(remainingZombies).entrySet());
 
         // Выполнение атак по обычным EnemyBlock и оставшимся зомби
-        executeEnemyBlockAttacks(attacks, remainingBaseBlocks, Arrays.asList(infoResponse.getEnemyBlocks()), updatedZombiesByLocation);
+        if (infoResponse.getEnemyBlocks().length > 0) {
+            executeEnemyBlockAttacks(attacks, remainingBaseBlocks, Arrays.asList(infoResponse.getEnemyBlocks()), updatedZombiesByLocation);
+        } else {
+            logger.info("Нет доступных EnemyBlock для атаки.");
+        }
 
         logger.info("Процесс атаки завершен");
         return attacks;
