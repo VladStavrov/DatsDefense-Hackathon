@@ -45,7 +45,7 @@ public class ShootScript {
         // Сортировка зомби по расстоянию от центра и уровню угрозы
         List<Map.Entry<String, List<Zombie>>> sortedZombiesByLocation = new ArrayList<>();
         if (!zombiesByLocation.isEmpty()) {
-            sortedZombiesByLocation = sortZombiesByThreatLevel(centerX, centerY, zombiesByLocation);
+            sortedZombiesByLocation = sortZombiesByDistanceAndThreat(centerX, centerY, zombiesByLocation);
         }
 
         List<Base> remainingBaseBlocks = new ArrayList<>(Arrays.asList(infoResponse.getBase()));
@@ -103,14 +103,8 @@ public class ShootScript {
         return zombies.stream().collect(Collectors.groupingBy(zombie -> zombie.getX() + "," + zombie.getY()));
     }
 
-    private static List<Map.Entry<String, List<Zombie>>> sortZombiesByThreatLevel(int centerX, int centerY, Map<String, List<Zombie>> zombiesByLocation) {
-        return zombiesByLocation.entrySet().stream().sorted(Comparator.comparingDouble(entry -> calculateThreatLevel(centerX, centerY, entry.getValue().get(0)))).collect(Collectors.toList());
-    }
-
-    private static double calculateThreatLevel(int centerX, int centerY, Zombie zombie) {
-        double distance = calculateDistance(centerX, centerY, zombie.getX(), zombie.getY());
-        int threatLevel = getZombieThreatLevel(zombie);
-        return distance / threatLevel;  // Учитываем и расстояние, и уровень угрозы
+    private static List<Map.Entry<String, List<Zombie>>> sortZombiesByDistanceAndThreat(int centerX, int centerY, Map<String, List<Zombie>> zombiesByLocation) {
+        return zombiesByLocation.entrySet().stream().sorted(Comparator.<Map.Entry<String, List<Zombie>>>comparingDouble(entry -> calculateDistance(centerX, centerY, entry.getValue().get(0).getX(), entry.getValue().get(0).getY())).thenComparing(entry -> getZombieThreatLevel(entry.getValue().get(0)))).collect(Collectors.toList());
     }
 
     private static void executeZombieAttacks(List<Attack> attacks, List<Base> baseBlocks, List<Map.Entry<String, List<Zombie>>> sortedZombiesByLocation, List<Zombie> remainingZombies) {
@@ -246,14 +240,14 @@ public class ShootScript {
         return Math.sqrt(Math.pow((x1 - x2), 2) + Math.pow((y1 - y2), 2));
     }
 
-    //TODO сделать лучше
     private static int getZombieThreatLevel(Zombie zombie) {
         return switch (zombie.getType()) {
-            case "fast" -> 2;
-            case "bomber" -> 5;
-            case "liner" -> 3;
-            case "juggernaut" -> 10;
-            case "chaos_knight" -> 4;
+            case "normal" -> 1;
+            case "fast" -> 2;  // Учитываем повышенную скорость
+            case "bomber" -> 5;  // Учитываем радиус атаки
+            case "liner" -> 3;  // Учитываем множественные атаки
+            case "juggernaut" -> 10;  // Учитываем постоянное движение и неуничтожаемость
+            case "chaos_knight" -> 4;  // Учитываем случайное движение и множественные атаки
             default -> 1;
         };
     }
