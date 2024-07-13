@@ -6,7 +6,6 @@ import lombok.Data;
 public class EnemyBlock {
     public int attack;
     public int health;
-    public boolean isHead;
     public LastAttack lastAttack;
     public String name;
     public int x;
