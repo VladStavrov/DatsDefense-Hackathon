@@ -1,9 +1,12 @@
 package org.example;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.example.models.mapInfo.Base;
 import org.example.models.mapInfo.InfoResponse;
+import org.example.models.mapInfo.Zombie;
 import org.example.models.play.*;
 import org.example.models.worldInfo.WorldDataResponse;
 import org.example.scripts.ShootScript.AttackResponse;
@@ -17,6 +20,7 @@ import static org.example.scripts.ShootScript.shoot;
 public class AutoPlayScript {
 
     public static void main(String[] args) throws InterruptedException {
+
         while (true) {
             try {
                 // Каждую секунду пробрасываем роут №3
@@ -87,6 +91,7 @@ public class AutoPlayScript {
             }
         }
     }
+
 
     // Метод для нахождения центрального блока базы
     private static Base findCenterBaseBlock(Base[] baseBlocks) {

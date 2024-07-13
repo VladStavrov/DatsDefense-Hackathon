@@ -178,20 +178,26 @@ public class ShootScript {
             }
 
             if (attacked) continue;
+            if(!sortedZombiesByLocation.isEmpty()){
+                for (Map.Entry<String, List<Zombie>> entry : sortedZombiesByLocation) {
 
-            // Если нет EnemyBlock, атакуем зомби
-            for (Map.Entry<String, List<Zombie>> entry : sortedZombiesByLocation) {
-                List<Zombie> zombiesInLocation = entry.getValue();
-                int targetX = zombiesInLocation.get(0).getX();
-                int targetY = zombiesInLocation.get(0).getY();
-                double distance = calculateDistance(baseX, baseY, targetX, targetY);
+                    List<Zombie> zombiesInLocation = entry.getValue();
+                    if(!zombiesInLocation.isEmpty()){
+                        int targetX = zombiesInLocation.get(0).getX();
+                        int targetY = zombiesInLocation.get(0).getY();
+                        double distance = calculateDistance(baseX, baseY, targetX, targetY);
 
-                if (distance <= attackRadius) {
-                    shootZombies(attacks, baseBlock, attackPower, zombiesInLocation, new ArrayList<>(zombiesInLocation));
-                    baseBlocksToRemove.add(baseBlock);  // Добавить блок базы для удаления после атаки
-                    break;
+                        if (distance <= attackRadius) {
+                            shootZombies(attacks, baseBlock, attackPower, zombiesInLocation, new ArrayList<>(zombiesInLocation));
+                            baseBlocksToRemove.add(baseBlock);  // Добавить блок базы для удаления после атаки
+                            break;
+                        }
+                    }
+
                 }
             }
+            // Если нет EnemyBlock, атакуем зомби
+
         }
 
         baseBlocks.removeAll(baseBlocksToRemove);  // Удалить блоки базы после атаки
