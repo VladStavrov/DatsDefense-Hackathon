@@ -61,7 +61,9 @@ public class AutoPlayScript {
                     getPlay();
                     Thread.sleep(1000);
                 }
-
+                System.out.println(infoResponse.getBase().length+" - Размер базы; "+ infoResponse.getPlayer().getZombieKills()+" - убито зомби; "
+                +infoResponse.getPlayer().getGold()+" - золото");
+                System.out.println("==================================");
                 Thread.sleep(2000);
 
             } catch (Exception e) {
