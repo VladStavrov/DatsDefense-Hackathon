@@ -68,6 +68,11 @@ public class ShootScript {
             remainingEnemyBlocks.removeAll(highPriorityEnemyBlocks);
         }
 
+        // Выполнение атак по обычным EnemyBlock
+        if (!remainingEnemyBlocks.isEmpty()) {
+            totalEnemyBlockAttacks = executeEnemyBlockAttacks(attacks, remainingBaseBlocks, remainingEnemyBlocks, sortedZombiesByLocation);
+        }
+
         // Выполнение атак по зомби
         if (!sortedZombiesByLocation.isEmpty()) {
             List<Zombie> remainingZombies = new ArrayList<>(Arrays.asList(infoResponse.getZombies()));
@@ -75,11 +80,6 @@ public class ShootScript {
 
             // Обновить массив зомби после атак
             Map<String, List<Zombie>> updatedZombiesByLocation = mapZombiesByLocation(remainingZombies);
-
-            // Выполнение атак по обычным EnemyBlock и оставшимся зомби
-            if (!remainingEnemyBlocks.isEmpty()) {
-                totalEnemyBlockAttacks = executeEnemyBlockAttacks(attacks, remainingBaseBlocks, remainingEnemyBlocks, new ArrayList<>(updatedZombiesByLocation.entrySet()));
-            }
 
             infoResponse.setZombies(remainingZombies.toArray(new Zombie[0]));
         }
@@ -155,7 +155,7 @@ public class ShootScript {
         return highPriorityAttacks;
     }
 
-    private static int executeEnemyBlockAttacks(List<Attack> attacks, List<Base> baseBlocks, List<EnemyBlock> enemyBlocks, List<Map.Entry<String, List<Zombie>>> updatedZombiesByLocation) {
+    private static int executeEnemyBlockAttacks(List<Attack> attacks, List<Base> baseBlocks, List<EnemyBlock> enemyBlocks, List<Map.Entry<String, List<Zombie>>> sortedZombiesByLocation) {
         int totalEnemyBlockAttacks = 0;
         List<Base> baseBlocksToRemove = new ArrayList<>();
 
@@ -182,7 +182,7 @@ public class ShootScript {
             if (attacked) continue;
 
             // Если нет EnemyBlock, атакуем зомби
-            for (Map.Entry<String, List<Zombie>> entry : updatedZombiesByLocation) {
+            for (Map.Entry<String, List<Zombie>> entry : sortedZombiesByLocation) {
                 List<Zombie> zombiesInLocation = entry.getValue();
                 int targetX = zombiesInLocation.get(0).getX();
                 int targetY = zombiesInLocation.get(0).getY();
