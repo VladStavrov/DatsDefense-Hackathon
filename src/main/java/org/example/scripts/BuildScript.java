@@ -54,8 +54,8 @@ public class BuildScript {
                             money--;
 
                             // Add new Base to bases array
-                            Base newBase = new Base(0, 0, "new" + money, false, new LastAttack(), 77, x, y);
-                            bases = addBaseToArray(bases, newBase);
+                            //Base newBase = new Base(0, 0, "new" + money, false, new LastAttack(), 77, x, y);
+                            //bases = addBaseToArray(bases, newBase);
 
                             if (money<=0){
                                 //printGrid(bases);
