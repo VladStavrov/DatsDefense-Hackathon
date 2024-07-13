@@ -8,7 +8,6 @@ import org.example.models.worldInfo.WorldDataResponse;
 
 import static org.example.MainCommands.*;
 import static org.example.scripts.BuildScript.build;
-import static org.example.scripts.MoveBaseScript.moveBase;
 import static org.example.scripts.ShootScript.shoot;
 
 public class AutoPlayScript {
@@ -23,7 +22,6 @@ public class AutoPlayScript {
                     if (infoResponse == null) throw new Exception("Failed to get game info.");
                 } catch (Exception e) {
                     System.err.println(e.getMessage());
-                    getPlay();
                     Thread.sleep(1000);
                     continue;
                 }
@@ -35,20 +33,25 @@ public class AutoPlayScript {
                     if (worldDataResponse == null) throw new Exception("Failed to get world data.");
                 } catch (Exception e) {
                     System.err.println(e.getMessage());
-                    getPlay();
                     Thread.sleep(1000);
                     continue;
                 }
 
                 PlayRequest playRequest = new PlayRequest();
+                try {
+                    List<Attack> attack = shoot(infoResponse);
+                    List<Build> builds = build(infoResponse, worldDataResponse);
+                    //MoveBase moveBase = moveBase(infoResponse, worldDataResponse);
 
-                List<Attack> attack = shoot(infoResponse);
-                List<Build> builds = build(infoResponse, worldDataResponse);
-                //MoveBase moveBase = moveBase(infoResponse, worldDataResponse);
-
-                playRequest.setAttack(attack);
-                playRequest.setBuild(builds);
-                //playRequest.setMoveBase(moveBase);
+                    playRequest.setAttack(attack);
+                    playRequest.setBuild(builds);
+                    //playRequest.setMoveBase(moveBase);
+                } catch (NullPointerException e) {
+                    e.printStackTrace();
+                    getPlay();
+                    Thread.sleep(1000);
+                    continue;
+                }
 
                 CommandResponse playResponse;
                 try {
@@ -58,11 +61,9 @@ public class AutoPlayScript {
                     System.out.println("Commands sent and Info updated.");
                 } catch (Exception e) {
                     System.err.println(e.getMessage());
-                    getPlay();
                     Thread.sleep(1000);
                 }
-                System.out.println(infoResponse.getBase().length+" - Размер базы; "+ infoResponse.getPlayer().getZombieKills()+" - убито зомби; "
-                +infoResponse.getPlayer().getGold()+" - золото");
+                System.out.println(infoResponse.getBase().length + " - Размер базы; " + infoResponse.getPlayer().getZombieKills() + " - убито зомби; " + infoResponse.getPlayer().getGold() + " - золото");
                 System.out.println("==================================");
                 Thread.sleep(2000);
 
