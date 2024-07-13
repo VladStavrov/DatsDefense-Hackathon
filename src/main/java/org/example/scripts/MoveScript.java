@@ -47,10 +47,18 @@ public class MoveScript {
 
         Base currentBaseCell = Arrays.stream(baseCells).filter(base -> base.getX() == currentX && base.getY() == currentY).findFirst().orElseThrow(() -> new IllegalArgumentException("Current position is not part of the base"));
 
+        double currentDangerLevel = dangerMap.get(currentBaseCell);
+
         // Логирование информации
         logger.info(String.format("Максимальный уровень опасности: %.2f", maxDangerLevel));
         logger.info(String.format("Минимальный уровень опасности: %.2f", minDangerLevel));
-        logger.info(String.format("Начальная клетка: (%d, %d) с уровнем опасности: %.2f", currentX, currentY, dangerMap.get(currentBaseCell)));
+        logger.info(String.format("Начальная клетка: (%d, %d) с уровнем опасности: %.2f", currentX, currentY, currentDangerLevel));
+
+        // Проверка разницы между текущей опасностью и минимальной опасностью
+        if (currentDangerLevel - minDangerLevel < 1) {
+            logger.info("Разница между текущей и минимальной опасностью < 1. Остаемся на текущих координатах.");
+            return currentBaseCell;
+        }
 
         // Найти самую близкую безопасную клетку к текущей позиции
         Base safestBaseCell = Collections.min(safestCells, Comparator.comparingDouble(cell -> calculateDistance(currentX, currentY, cell.getX(), cell.getY())));
