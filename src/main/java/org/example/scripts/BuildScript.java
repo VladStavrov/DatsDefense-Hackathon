@@ -20,7 +20,7 @@ public class BuildScript {
     }
 
 
-    public static List<Build> findNextBuildLocation(InfoResponse infoResponse,int money,WorldDataResponse worldDataResponse) {
+    /*public static List<Build> findNextBuildLocation(InfoResponse infoResponse,int money,WorldDataResponse worldDataResponse) {
         //printGrid(bases);
         Base[] bases = infoResponse.getBase();
         int startX = -1;
@@ -74,6 +74,72 @@ public class BuildScript {
                 }
             }
         }
+        return build;
+    }*/
+    public static List<Build> findNextBuildLocation(InfoResponse infoResponse, int money, WorldDataResponse worldDataResponse) {
+        Base[] bases = infoResponse.getBase();
+        int startX = -1;
+        int startY = -1;
+        List<Build> build = new ArrayList<>();
+
+        // Найти базу с центром управления
+        for (Base base : bases) {
+            if (base.isHead()) {
+                startX = base.getX();
+                startY = base.getY();
+                System.out.println("Head: " + startX + " : " + startY);
+                break;
+            }
+        }
+
+        if (startX == -1 || startY == -1) {
+            throw new IllegalArgumentException("No head base found");
+        }
+
+        int radius;
+        int distanceEnemy = 5, distanceSpotsZombie = 4, distanceZombie = 2;
+
+        // PriorityQueue для мест размещения с учетом их безопасности и стратегической ценности
+        PriorityQueue<Build> priorityQueue = new PriorityQueue<>(new BuildDistanceComparator(startX, startY));
+
+        while (money > 0 && distanceEnemy != 1) {
+            radius = 0;
+            distanceEnemy--;
+            distanceSpotsZombie--;
+            if (distanceSpotsZombie <= 0) {
+                distanceSpotsZombie = 0;
+            }
+            distanceZombie--;
+            if (distanceZombie <= 0) {
+                distanceZombie = 0;
+            }
+
+            while (money > 0 && radius <= 200) {
+                radius++;
+                int x, y;
+                int maxX = startX + radius;
+                int maxY = startY + radius;
+
+                for (x = startX - radius; x <= maxX; x++) {
+                    for (y = startY - radius; y <= maxY; y++) {
+                        double distance = calculateDistance(startX, startY, x, y);
+                        if (distance <= radius) {
+                            if (checkCoordinates(x, y, infoResponse, worldDataResponse, build, distanceEnemy, distanceSpotsZombie, distanceZombie)) {
+                                System.out.println("Point: (" + x + ", " + y + ")");
+                                priorityQueue.add(createBase(x, y));
+                            }
+                        }
+                    }
+                }
+
+                while (!priorityQueue.isEmpty() && money > 0) {
+                    Build nextBuild = priorityQueue.poll();
+                    build.add(nextBuild);
+                    money--;
+                }
+            }
+        }
+
         return build;
     }
     public static boolean checkCoordinates(int x, int y, InfoResponse infoResponse,WorldDataResponse worldDataResponse,
