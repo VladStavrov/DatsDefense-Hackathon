@@ -8,81 +8,19 @@ import org.example.models.worldInfo.ZPot;
 import java.util.*;
 
 public class BuildScript {
-    public static void main(String[] args) {
-        build(null,null);
-    }
-    public static List<Build> build(InfoResponse infoResponse, WorldDataResponse worldDataResponse){
+    public static List<Build> build(InfoResponse infoResponse, WorldDataResponse worldDataResponse) {
         List<Build> build;
 
-        build = findNextBuildLocation(infoResponse,infoResponse.getPlayer().getGold(),worldDataResponse);
-       // build = findNextBuildLocation(createRandomBases(15,5,12),35);
+        build = findNextBuildLocation(infoResponse, infoResponse.getPlayer().getGold(), worldDataResponse);
         return build;
     }
 
-
-    /*public static List<Build> findNextBuildLocation(InfoResponse infoResponse,int money,WorldDataResponse worldDataResponse) {
-        //printGrid(bases);
-        Base[] bases = infoResponse.getBase();
-        int startX = -1;
-        int startY = -1;
-        List<Build> build = new ArrayList<>();
-        for (Base base : bases) {
-            if (base.isHead() ) {
-                startX = base.getX();
-                startY = base.getY();
-                System.out.println("Head: "+startX+" : "+startY);
-                break;
-            }
-        }
-        if (startX == -1 || startY == -1) {
-            throw new IllegalArgumentException("No head base found");
-        }
-        int radius;
-        int distanceEnemy = 5, distanceSpotsZombie = 0, distanceZombie = 2;
-        while(money > 0 && distanceEnemy!=1){
-
-            radius = 0;
-            distanceEnemy--;
-            distanceSpotsZombie--;
-            if(distanceSpotsZombie<=0){
-                distanceSpotsZombie=0;
-            }
-            distanceZombie--;
-            if(distanceZombie<=0){
-                distanceZombie=0;
-            }
-
-            while(money > 0 && radius<=200){
-                radius++;
-                int x,y;
-                int maxX = startX + radius;
-                int maxY = startY + radius;
-                for (x=startX-radius;x<=maxX; x++) {
-                    for (y=startY-radius;y<=maxY; y++) {
-                        double distance = calculateDistance(startX,startY,x,y);
-                        if (distance <= radius) {
-                            if(checkCoordinates(x,y,infoResponse,worldDataResponse,build,distanceEnemy,distanceSpotsZombie,distanceZombie)){
-                                System.out.println("Point: (" + x + ", " + y + ")");
-                                build.add(createBase(x,y));
-                                money--;
-                                if (money<=0){
-                                    return build;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return build;
-    }*/
     public static List<Build> findNextBuildLocation(InfoResponse infoResponse, int money, WorldDataResponse worldDataResponse) {
         Base[] bases = infoResponse.getBase();
         int startX = -1;
         int startY = -1;
         List<Build> build = new ArrayList<>();
-        int firstPartMoney = money/2;
-        int secondPart = money - firstPartMoney;
+        int firstPartMoney = money / 2;
 
         // Найти базу с центром управления
         for (Base base : bases) {
@@ -127,8 +65,11 @@ public class BuildScript {
                         double distance = calculateDistance(startX, startY, x, y);
                         if (distance <= radius) {
                             if (checkCoordinates(x, y, infoResponse, worldDataResponse, build, distanceEnemy, distanceSpotsZombie, distanceZombie)) {
-                                System.out.println("Point: (" + x + ", " + y + ")");
-                                priorityQueue.add(createBase(x, y));
+                                // Пропускаем координаты, если обе четные
+                                if (!shouldSkipCoordinates(x, y)) {
+                                    System.out.println("Point: (" + x + ", " + y + ")");
+                                    priorityQueue.add(createBase(x, y));
+                                }
                             }
                         }
                     }
@@ -145,33 +86,20 @@ public class BuildScript {
         return build;
     }
 
-    public static Base findFurthestBase(int startX, int startY, InfoResponse infoResponse) {
-        Base[] bases = infoResponse.getBase();
-        Base furthestBase = null;
-        double maxDistance = -1;
-
-        for (Base base : bases) {
-            double distance = calculateDistance(startX, startY, base.getX(), base.getY());
-            if (distance > maxDistance) {
-                maxDistance = distance;
-                furthestBase = base;
-            }
-        }
-
-        return furthestBase;
+    // Метод для фильтрации координат
+    public static boolean shouldSkipCoordinates(int x, int y) {
+        return (x % 2 == 0) && (y % 2 == 0);
     }
-    public static boolean checkCoordinates(int x, int y, InfoResponse infoResponse,WorldDataResponse worldDataResponse,
-                                           List<Build> currentBuild, int distanceEnemy, int distanceSpotsZombie,
-                                           int distanceZombie) {
+
+    public static boolean checkCoordinates(int x, int y, InfoResponse infoResponse, WorldDataResponse worldDataResponse, List<Build> currentBuild, int distanceEnemy, int distanceSpotsZombie, int distanceZombie) {
         if (x < 0 || y < 0) {
             return false;
         }
         double distance = 1000;
-        double newDistance = 1000;
-        if (!currentBuild.isEmpty()){
-            for (Build build:
-                 currentBuild) {
-                if(build.getX() == x && build.getY() == y){
+        double newDistance;
+        if (!currentBuild.isEmpty()) {
+            for (Build build : currentBuild) {
+                if (build.getX() == x && build.getY() == y) {
                     return false;
                 }
             }
@@ -186,39 +114,39 @@ public class BuildScript {
                 distance = newDistance;
             }
         }
-        if(distance > 1){
+        if (distance > 1) {
             return false;
         }
 
-        //Zombie
-        if (infoResponse != null && infoResponse.getZombies() != null) {
+        // Zombie
+        if (infoResponse.getZombies() != null) {
             for (Zombie zombie : infoResponse.getZombies()) {
                 if (zombie.x == x && zombie.y == y) {
                     return false;
                 }
-                if (Math.sqrt(Math.pow(zombie.x - x, 2) + Math.pow(zombie.y - y, 2))<=distanceZombie) {
+                if (Math.sqrt(Math.pow(zombie.x - x, 2) + Math.pow(zombie.y - y, 2)) <= distanceZombie) {
                     return false;
                 }
             }
         }
 
-        //Enemy
-        if (infoResponse != null && infoResponse.getEnemyBlocks() != null) {
+        // Enemy
+        if (infoResponse.getEnemyBlocks() != null) {
             for (EnemyBlock enemyBlock : infoResponse.getEnemyBlocks()) {
                 int enemyX = enemyBlock.getX();
                 int enemyY = enemyBlock.getY();
-                if (Math.sqrt(Math.pow(enemyX - x, 2) + Math.pow(enemyY - y, 2))<=distanceEnemy) {
+                if (Math.sqrt(Math.pow(enemyX - x, 2) + Math.pow(enemyY - y, 2)) <= distanceEnemy) {
                     return false;
                 }
             }
         }
 
-        //Spots
+        // Spots
         if (worldDataResponse != null && worldDataResponse.getZpots() != null) {
             for (ZPot zpot : worldDataResponse.getZpots()) {
                 int zpotX = zpot.getX();
                 int zpotY = zpot.getY();
-                if (Math.sqrt(Math.pow(zpotX - x, 2) + Math.pow(zpotY - y, 2))<=distanceSpotsZombie) {
+                if (Math.sqrt(Math.pow(zpotX - x, 2) + Math.pow(zpotY - y, 2)) <= distanceSpotsZombie) {
                     return false;
                 }
 
@@ -242,12 +170,14 @@ public class BuildScript {
 
         return true;
     }
+
     private static Build createBase(int x, int y) {
         Build base = new Build();
         base.setX(x);
         base.setY(y);
         return base;
     }
+
     private static double calculateDistance(int x1, int y1, int x2, int y2) {
         return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
     }
