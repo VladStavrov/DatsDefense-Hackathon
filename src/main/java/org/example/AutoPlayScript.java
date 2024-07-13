@@ -44,11 +44,11 @@ public class AutoPlayScript {
 
                 List<Attack> attack = shoot(infoResponse);
                 List<Build> builds = build(infoResponse, worldDataResponse);
-                MoveBase moveBase = moveBase(infoResponse, worldDataResponse);
+                //MoveBase moveBase = moveBase(infoResponse, worldDataResponse);
 
                 playRequest.setAttack(attack);
                 playRequest.setBuild(builds);
-                playRequest.setMoveBase(moveBase);
+                //playRequest.setMoveBase(moveBase);
 
                 CommandResponse playResponse;
                 try {

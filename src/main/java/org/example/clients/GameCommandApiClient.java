@@ -29,7 +29,7 @@ public class GameCommandApiClient {
         HttpRequest request = HttpRequest.newBuilder().uri(URI.create(BASE_URL)).header(AUTH_HEADER, API_KEY).header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(jsonBody)).build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
+        System.out.println("response: "+response);
         int statusCode = response.statusCode();
 
 
