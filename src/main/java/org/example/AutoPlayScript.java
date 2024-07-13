@@ -42,7 +42,7 @@ public class AutoPlayScript {
 
                 PlayRequest playRequest = new PlayRequest();
 
-                List<Attack> attack = shoot(infoResponse, worldDataResponse);
+                List<Attack> attack = shoot(infoResponse);
                 List<Build> builds = build(infoResponse, worldDataResponse);
                 MoveBase moveBase = moveBase(infoResponse, worldDataResponse);
 
@@ -62,7 +62,6 @@ public class AutoPlayScript {
                     Thread.sleep(1000);
                 }
 
-                // Sleep for 2 seconds to mimic the scheduling
                 Thread.sleep(2000);
 
             } catch (Exception e) {
