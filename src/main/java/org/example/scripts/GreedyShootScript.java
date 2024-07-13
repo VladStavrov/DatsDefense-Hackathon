@@ -109,28 +109,28 @@ public class GreedyShootScript {
 
     private static void executeZombieAttacks(List<Attack> attacks, List<Base> baseBlocks, List<Map.Entry<String, List<Zombie>>> sortedZombiesByLocation, List<Zombie> remainingZombies) {
         // Найдем лучшую комбинацию атак для базы с помощью бэктрекинга
-        List<Attack> bestAttackCombination = findBestZombieAttackCombination(baseBlocks, sortedZombiesByLocation);
+        List<Attack> bestAttackCombination = findBestZombieAttackCombination(baseBlocks, sortedZombiesByLocation, new ArrayList<>(remainingZombies));
 
         // Выполним атаки из лучшей комбинации
         for (Attack attack : bestAttackCombination) {
             attacks.add(attack);
-            remainingZombies.removeIf(zombie -> zombie.getX() == attack.getTarget().getX() && zombie.getY() == attack.getTarget().getY());
+            remainingZombies.removeIf(zombie -> zombie.getX() == attack.getTarget().getX() && zombie.getY() == attack.getTarget().getY() && zombie.getHealth() <= 0);
         }
     }
 
-    private static List<Attack> findBestZombieAttackCombination(List<Base> baseBlocks, List<Map.Entry<String, List<Zombie>>> sortedZombiesByLocation) {
+    private static List<Attack> findBestZombieAttackCombination(List<Base> baseBlocks, List<Map.Entry<String, List<Zombie>>> sortedZombiesByLocation, List<Zombie> remainingZombies) {
         List<Attack> bestCombination = new ArrayList<>();
         List<Attack> currentCombination = new ArrayList<>();
         int[] maxZombiesKilled = {0}; // Используем массив, чтобы значение можно было изменять в рекурсивном методе
 
-        backtrack(baseBlocks, sortedZombiesByLocation, 0, currentCombination, bestCombination, maxZombiesKilled);
+        backtrack(baseBlocks, sortedZombiesByLocation, 0, currentCombination, bestCombination, maxZombiesKilled, remainingZombies);
 
         return bestCombination;
     }
 
-    private static void backtrack(List<Base> baseBlocks, List<Map.Entry<String, List<Zombie>>> sortedZombiesByLocation, int index, List<Attack> currentCombination, List<Attack> bestCombination, int[] maxZombiesKilled) {
+    private static void backtrack(List<Base> baseBlocks, List<Map.Entry<String, List<Zombie>>> sortedZombiesByLocation, int index, List<Attack> currentCombination, List<Attack> bestCombination, int[] maxZombiesKilled, List<Zombie> remainingZombies) {
         if (index == baseBlocks.size()) {
-            int zombiesKilled = calculateZombiesKilled(currentCombination);
+            int zombiesKilled = calculateZombiesKilled(currentCombination, remainingZombies);
             if (zombiesKilled > maxZombiesKilled[0]) {
                 maxZombiesKilled[0] = zombiesKilled;
                 bestCombination.clear();
@@ -143,6 +143,7 @@ public class GreedyShootScript {
         int baseX = baseBlock.getX();
         int baseY = baseBlock.getY();
         int attackRadius = baseBlock.getRange();
+        int attackPower = baseBlock.getAttack();
 
         for (Map.Entry<String, List<Zombie>> entry : sortedZombiesByLocation) {
             List<Zombie> zombiesInLocation = entry.getValue();
@@ -153,12 +154,14 @@ public class GreedyShootScript {
             if (distance <= attackRadius) {
                 Attack attack = createAttack(baseBlock, targetX, targetY);
                 currentCombination.add(attack);
-                backtrack(baseBlocks, sortedZombiesByLocation, index + 1, currentCombination, bestCombination, maxZombiesKilled);
+                applyAttackOnZombies(zombiesInLocation, attackPower);
+                backtrack(baseBlocks, sortedZombiesByLocation, index + 1, currentCombination, bestCombination, maxZombiesKilled, remainingZombies);
+                revertAttackOnZombies(zombiesInLocation, attackPower); // Отменяем атаку для корректного бэктрекинга
                 currentCombination.remove(currentCombination.size() - 1);
             }
         }
 
-        backtrack(baseBlocks, sortedZombiesByLocation, index + 1, currentCombination, bestCombination, maxZombiesKilled);
+        backtrack(baseBlocks, sortedZombiesByLocation, index + 1, currentCombination, bestCombination, maxZombiesKilled, remainingZombies);
     }
 
     private static Attack createAttack(Base baseBlock, int targetX, int targetY) {
@@ -171,8 +174,28 @@ public class GreedyShootScript {
         return attack;
     }
 
-    private static int calculateZombiesKilled(List<Attack> attacks) {
-        return attacks.size(); // Количество атак соответствует количеству убитых зомби
+    private static int calculateZombiesKilled(List<Attack> attacks, List<Zombie> remainingZombies) {
+        int zombiesKilled = 0;
+        for (Attack attack : attacks) {
+            for (Zombie zombie : remainingZombies) {
+                if (zombie.getX() == attack.getTarget().getX() && zombie.getY() == attack.getTarget().getY() && zombie.getHealth() <= 0) {
+                    zombiesKilled++;
+                }
+            }
+        }
+        return zombiesKilled;
+    }
+
+    private static void applyAttackOnZombies(List<Zombie> zombiesInLocation, int attackPower) {
+        for (Zombie zombie : zombiesInLocation) {
+            zombie.setHealth(zombie.getHealth() - attackPower);
+        }
+    }
+
+    private static void revertAttackOnZombies(List<Zombie> zombiesInLocation, int attackPower) {
+        for (Zombie zombie : zombiesInLocation) {
+            zombie.setHealth(zombie.getHealth() + attackPower);
+        }
     }
 
     private static int executeHighPriorityEnemyBlockAttacks(List<Attack> attacks, List<Base> baseBlocks, List<EnemyBlock> enemyBlocks) {
