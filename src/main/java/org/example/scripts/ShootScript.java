@@ -20,12 +20,9 @@ public class ShootScript {
         logger.info("Начало процесса атаки");
 
         // Найти центральный блок базы (head)
-        Base centerBaseBlock = findCenterBaseBlock(Arrays.asList(infoResponse.getBase()));
-        if (centerBaseBlock == null) {
-            logger.warning("Центральный блок базы не найден");
-            return attacks;
-        }
+        Base centerBaseBlock = findCenterBaseBlock((infoResponse.getBase()));
 
+        assert centerBaseBlock != null;
         int centerX = centerBaseBlock.getX();
         int centerY = centerBaseBlock.getY();
 
@@ -43,8 +40,15 @@ public class ShootScript {
         return attacks;
     }
 
-    private static Base findCenterBaseBlock(List<Base> baseBlocks) {
-        return baseBlocks.stream().filter(Base::isHead).findFirst().orElse(null);
+    private static Base findCenterBaseBlock(Base[] baseBlocks) {
+        for (Base base : baseBlocks) {
+            if (base.isHead()) {
+                System.out.println("Head: " + base.x + " : " + base.y);
+                return base;
+            }
+        }
+        logger.warning("Центральный блок базы не найден");
+        return null;
     }
 
     private static Map<String, List<Zombie>> mapZombiesByLocation(List<Zombie> zombies) {
