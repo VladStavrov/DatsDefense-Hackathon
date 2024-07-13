@@ -13,7 +13,7 @@ import static org.example.scripts.ShootScript.shoot;
 
 public class AutoPlayScript {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         while (true) {
             try {
                 // Каждую секунду пробрасываем роут №3
@@ -66,6 +66,7 @@ public class AutoPlayScript {
 
             } catch (Exception e) {
                 e.printStackTrace();
+                Thread.sleep(1000);
             }
         }
     }

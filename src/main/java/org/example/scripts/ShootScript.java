@@ -6,10 +6,10 @@ import org.example.models.mapInfo.Zombie;
 import org.example.models.play.Attack;
 import org.example.models.play.Target;
 
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.PriorityQueue;
 
 public class ShootScript {
 
@@ -23,8 +23,8 @@ public class ShootScript {
             List<Zombie> targetZombies = new ArrayList<>();
 
             // Определение радиуса атаки
-            int attackRadius = baseBlock.isHead() ? 8 : 5;
-            int attackPower = baseBlock.isHead() ? 40 : 10;
+            int attackRadius = baseBlock.range;
+            int attackPower = baseBlock.attack;
 
             System.out.println("Блок базы ID: " + baseBlock.id + " имеет радиус атаки: " + attackRadius + " и силу атаки: " + attackPower);
 
@@ -37,22 +37,41 @@ public class ShootScript {
                 }
             }
 
-            // Сортировка зомби по близости к базе
             targetZombies.sort(Comparator.comparingDouble(z -> calculateDistance(baseBlock.getX(), baseBlock.getY(), z.getX(), z.getY())));
 
-            for (Zombie zombie : targetZombies) {
-                Attack attack = new Attack();
-                attack.setBlockId(baseBlock.id);
-                Target target = new Target();
-                target.setX(zombie.x);
-                target.setY(zombie.y);
-                attack.setTarget(target);
-                attacks.add(attack);
-                System.out.println("Атака: Блок базы ID: " + baseBlock.id + " атакует зомби ID: " + zombie.id + " с силой: " + attackPower);
+            PriorityQueue<Zombie> zombieQueue = new PriorityQueue<>(Comparator.comparingInt(z -> z.health));
+
+            zombieQueue.addAll(targetZombies);
+
+            while (!zombieQueue.isEmpty()) {
+                Zombie zombie = zombieQueue.poll();
+                if (zombie.health <= attackPower) {
+                    // Зомби будет убит
+                    Attack attack = new Attack();
+                    attack.setBlockId(baseBlock.id);
+                    Target target = new Target();
+                    target.setX(zombie.x);
+                    target.setY(zombie.y);
+                    attack.setTarget(target);
+                    attacks.add(attack);
+                    zombie.health -= attackPower;
+                    System.out.println("Атака: Блок базы ID: " + baseBlock.id + " убивает зомби ID: " + zombie.id + " с силой: " + attackPower);
+                } else {
+                    // Зомби будет ранен, но не убит
+                    Attack attack = new Attack();
+                    attack.setBlockId(baseBlock.id);
+                    Target target = new Target();
+                    target.setX(zombie.x);
+                    target.setY(zombie.y);
+                    attack.setTarget(target);
+                    attacks.add(attack);
+                    zombie.health -= attackPower;
+                    zombieQueue.add(zombie);
+                    System.out.println("Атака: Блок базы ID: " + baseBlock.id + " ранит зомби ID: " + zombie.id + " с силой: " + attackPower);
+                }
             }
         }
 
-        // Логирование завершения процесса
         System.out.println("Процесс атаки завершен");
 
         return attacks;
