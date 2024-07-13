@@ -48,7 +48,7 @@ public class AutoPlayScript {
                     //playRequest.setMoveBase(moveBase);
                 } catch (NullPointerException e) {
                     e.printStackTrace();
-                    getPlay();
+//                    getPlay();
                     Thread.sleep(1000);
                     continue;
                 }
